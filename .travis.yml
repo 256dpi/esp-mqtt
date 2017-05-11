@@ -4,5 +4,10 @@ sudo: false
 language:
   - cpp
 
+addons:
+  apt:
+    packages:
+    - gperf
+
 script:
   - make build
