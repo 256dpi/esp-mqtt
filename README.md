@@ -1,8 +1,8 @@
 # esp-mqtt
 
-**MQTT library for the esp-idf based on the lwmqtt project**
+**MQTT component for the esp-idf based on the lwmqtt project**
 
-This library bundles the lwmqtt client and adds a simple async API similar to other esp networking libraries.
+This component bundles the lwmqtt client and adds a simple async API similar to other esp networking components.
 
 ## Installation
 
