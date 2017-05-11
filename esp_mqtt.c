@@ -9,7 +9,7 @@
 
 #include "esp_mqtt.h"
 
-#define ESP_MQTT_LOG_TAG "ESP-MQTT"
+#define ESP_MQTT_LOG_TAG "esp_mqtt"
 
 static SemaphoreHandle_t esp_mqtt_mutex;
 
