@@ -27,7 +27,7 @@ static struct {
   char client_id[ESP_MQTT_CONF_STR_LENGTH];
   char username[ESP_MQTT_CONF_STR_LENGTH];
   char password[ESP_MQTT_CONF_STR_LENGTH];
-} esp_mqtt_config;
+} esp_mqtt_config = {.host = NULL, .port = 1883, .client_id = NULL, .username = NULL, .password = NULL};
 
 static bool esp_mqtt_running = false;
 static bool esp_mqtt_connected = false;
@@ -35,7 +35,7 @@ static bool esp_mqtt_connected = false;
 static esp_mqtt_status_callback_t esp_mqtt_status_callback = NULL;
 static esp_mqtt_message_callback_t esp_mqtt_message_callback = NULL;
 
-static lwmqtt_client_t esp_mqtt_client;
+static lwmqtt_client_t esp_mqtt_client = NULL;
 
 static esp_lwmqtt_network_t esp_mqtt_network = esp_lwmqtt_default_network;
 
