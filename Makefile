@@ -20,3 +20,6 @@ test/esp-idf:
 
 build: test/xtensa-esp32-elf test/esp-idf
 	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make
+
+flash:
+	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make flash
