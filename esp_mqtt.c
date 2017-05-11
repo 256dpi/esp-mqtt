@@ -243,8 +243,7 @@ void esp_mqtt_start(const char *host, unsigned int port, const char *client_id, 
 
   // set host if provided
   if (host != NULL) {
-    esp_mqtt_config.host = malloc(strlen(host));
-    strcpy(esp_mqtt_config.host, host);
+    esp_mqtt_config.host = strdup(host);
   }
 
   // set port
@@ -252,20 +251,17 @@ void esp_mqtt_start(const char *host, unsigned int port, const char *client_id, 
 
   // set client id if provided
   if (client_id != NULL) {
-    esp_mqtt_config.client_id = malloc(strlen(client_id));
-    strcpy(esp_mqtt_config.client_id, client_id);
+    esp_mqtt_config.client_id = strdup(client_id);
   }
 
   // set username if provided
   if (username != NULL) {
-    esp_mqtt_config.username = malloc(strlen(username));
-    strcpy(esp_mqtt_config.username, username);
+    esp_mqtt_config.username = strdup(username);
   }
 
   // set password if provided
   if (password != NULL) {
-    esp_mqtt_config.password = malloc(strlen(password));
-    strcpy(esp_mqtt_config.password, password);
+    esp_mqtt_config.password = strdup(password);
   }
 
   // create mqtt thread
