@@ -22,11 +22,11 @@ static SemaphoreHandle_t esp_mqtt_mutex;
 static TaskHandle_t esp_mqtt_task;
 
 static struct {
-  char host[ESP_MQTT_CONF_STR_LENGTH];
+  char * host;
   uint16_t port;
-  char client_id[ESP_MQTT_CONF_STR_LENGTH];
-  char username[ESP_MQTT_CONF_STR_LENGTH];
-  char password[ESP_MQTT_CONF_STR_LENGTH];
+  char * client_id;
+  char * username;
+  char * password;
 } esp_mqtt_config = {.host = NULL, .port = 1883, .client_id = NULL, .username = NULL, .password = NULL};
 
 static bool esp_mqtt_running = false;
@@ -35,7 +35,7 @@ static bool esp_mqtt_connected = false;
 static esp_mqtt_status_callback_t esp_mqtt_status_callback = NULL;
 static esp_mqtt_message_callback_t esp_mqtt_message_callback = NULL;
 
-static lwmqtt_client_t esp_mqtt_client = NULL;
+static lwmqtt_client_t esp_mqtt_client;
 
 static esp_lwmqtt_network_t esp_mqtt_network = esp_lwmqtt_default_network;
 
@@ -217,12 +217,56 @@ void esp_mqtt_start(const char *host, unsigned int port, const char *client_id, 
     return;
   }
 
-  // copy config
-  strcpy(esp_mqtt_config.host, host);
+  // free host if set
+  if (esp_mqtt_config.host != NULL) {
+    free(esp_mqtt_config.host);
+    esp_mqtt_config.host = NULL;
+  }
+
+  // free client id if set
+  if (esp_mqtt_config.client_id != NULL) {
+    free(esp_mqtt_config.client_id);
+    esp_mqtt_config.client_id = NULL;
+  }
+
+  // free username if set
+  if (esp_mqtt_config.username != NULL) {
+    free(esp_mqtt_config.username);
+    esp_mqtt_config.username = NULL;
+  }
+
+  // free password if set
+  if (esp_mqtt_config.password != NULL) {
+    free(esp_mqtt_config.password);
+    esp_mqtt_config.password = NULL;
+  }
+
+  // set host if provided
+  if (host != NULL) {
+    esp_mqtt_config.host = malloc(strlen(host));
+    strcpy(esp_mqtt_config.host, host);
+  }
+
+  // set port
   esp_mqtt_config.port = (uint16_t)port;
-  strcpy(esp_mqtt_config.client_id, client_id);
-  strcpy(esp_mqtt_config.username, username);
-  strcpy(esp_mqtt_config.password, password);
+
+  // set client id if provided
+  if (client_id != NULL) {
+    esp_mqtt_config.client_id = malloc(strlen(client_id));
+    strcpy(esp_mqtt_config.client_id, client_id);
+  }
+
+  // set username if provided
+  if (username != NULL) {
+    esp_mqtt_config.username = malloc(strlen(username));
+    strcpy(esp_mqtt_config.username, username);
+  }
+
+  // set password if provided
+  if (password != NULL) {
+    esp_mqtt_config.password = malloc(strlen(password));
+    strcpy(esp_mqtt_config.password, password);
+  }
 
   // create mqtt thread
   ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_start: create task");

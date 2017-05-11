@@ -16,13 +16,6 @@
 #endif
 
 /**
- * Default config string length to 32 bytes.
- */
-#ifndef ESP_MQTT_CONF_STR_LENGTH
-#define ESP_MQTT_CONF_STR_LENGTH 32
-#endif
-
-/**
  * The statuses emitted by the callback.
  */
 typedef enum esp_mqtt_status_t { ESP_MQTT_STATUS_DISCONNECTED, ESP_MQTT_STATUS_CONNECTED } esp_mqtt_status_t;
