@@ -10,6 +10,7 @@ You can install the component by adding it as a git submodule:
 
 ```bash
 git submodule add https://github.com/256dpi/esp-mqtt.git components/esp-mqtt
+git submodule update --init --recursive
 ```
 
 ## API
