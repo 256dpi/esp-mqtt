@@ -2,7 +2,7 @@
 
 // Some docs about netconn: http://www.ecoscentric.com/ecospro/doc/html/ref/lwip-api-sequential-reference.html.
 
-#include "esp-lwmqtt.h"
+#include "esp_lwmqtt.h"
 
 void esp_lwmqtt_timer_set(lwmqtt_client_t *client, void *ref, unsigned int timeout) {
   // cast timer reference

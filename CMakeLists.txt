@@ -5,7 +5,7 @@ set(CMAKE_C_STANDARD 99)
 
 include_directories(
         test/build/include
-        xtensa-esp32-elf/xtensa-esp32-elf/include
+        test/xtensa-esp32-elf/xtensa-esp32-elf/include
         test/esp-idf/components/esp32/include
         test/esp-idf/components/freertos/include
         test/esp-idf/components/log/include
@@ -17,10 +17,10 @@ include_directories(
         .)
 
 set(SOURCE_FILES
-        esp-lwmqtt.c
-        esp-lwmqtt.h
-        mqtt.c
-        mqtt.h
+        esp_lwmqtt.c
+        esp_lwmqtt.h
+        esp_mqtt.c
+        esp_mqtt.h
         test/main/main.c)
 
 add_library(esp-mqtt ${SOURCE_FILES})

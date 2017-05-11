@@ -5,9 +5,9 @@
 #include <lwmqtt.h>
 #include <string.h>
 
-#include "esp-lwmqtt.h"
+#include "esp_lwmqtt.h"
 
-#include "mqtt.h"
+#include "esp_mqtt.h"
 
 #define ESP_MQTT_LOG_TAG "ESP-MQTT"
 
@@ -62,7 +62,7 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
 static void esp_mqtt_message_handler(lwmqtt_client_t *c, void *ref, lwmqtt_string_t *topic, lwmqtt_message_t *msg) {
   // copy and null terminate topic
   char prefixed_topic[topic->len + 1];
-  memcpy(prefixed_topic, topic->data, topic->len);
+  memcpy(prefixed_topic, topic->data, (size_t)topic->len);
   prefixed_topic[topic->len] = 0;
 
   // null terminate payload

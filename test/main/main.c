@@ -2,9 +2,8 @@
 #include <string.h>
 
 #include <esp_event_loop.h>
+#include <esp_mqtt.h>
 #include <esp_wifi.h>
-#include <freertos/FreeRTOS.h>
-#include <mqtt.h>
 #include <nvs_flash.h>
 
 #define WIFI_SSID "ssid"
