@@ -14,6 +14,13 @@
 #define MQTT_USER "try"
 #define MQTT_PASS "try"
 
+static TaskHandle_t task;
+
+static void process(void * p) {
+  esp_mqtt_publish_str("hello", "world", 0, false);
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
+}
+
 static esp_err_t event_handler(void *ctx, system_event_t *event) {
   switch (event->event_id) {
     case SYSTEM_EVENT_STA_START:
@@ -38,14 +45,19 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 
 static void status_callback(esp_mqtt_status_t status) {
   switch (status) {
-    case ESP_MQTT_STATUS_DISCONNECTED:
-      break;
     case ESP_MQTT_STATUS_CONNECTED:
+      esp_mqtt_subscribe("hello", 0);
+      xTaskCreatePinnedToCore(process, "process", 1024, NULL, 10, &task, 1);
+      break;
+    case ESP_MQTT_STATUS_DISCONNECTED:
+      vTaskDelete(task);
       break;
   }
 }
 
-static void message_callback(const char *topic, const char *payload, unsigned int len) {}
+static void message_callback(const char *topic, const char *payload, unsigned int len) {
+  printf("incoming: %s => %s\n", topic, payload);
+}
 
 void app_main() {
   ESP_ERROR_CHECK(nvs_flash_init());
