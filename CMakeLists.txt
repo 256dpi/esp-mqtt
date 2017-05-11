@@ -9,7 +9,6 @@ include_directories(
         test/esp-idf/components/esp32/include
         test/esp-idf/components/freertos/include
         test/esp-idf/components/log/include
-        test/esp-idf/components/nvs_flash/include
         test/esp-idf/components/tcpip_adapter/include
         test/esp-idf/components/lwip/include/lwip/port
         test/esp-idf/components/lwip/include/lwip

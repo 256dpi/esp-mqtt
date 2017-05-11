@@ -4,7 +4,6 @@
 #include <esp_event_loop.h>
 #include <esp_mqtt.h>
 #include <esp_wifi.h>
-#include <nvs_flash.h>
 
 #define WIFI_SSID "ssid"
 #define WIFI_PASS "pass"
@@ -62,7 +61,6 @@ static void message_callback(const char *topic, const char *payload, unsigned in
 }
 
 void app_main() {
-  ESP_ERROR_CHECK(nvs_flash_init());
   tcpip_adapter_init();
   ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
 
