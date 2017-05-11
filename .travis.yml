@@ -7,7 +7,12 @@ language:
 addons:
   apt:
     packages:
+    - libncurses-dev
+    - flex
+    - bison
     - gperf
+    - python
+    - python-serial
 
 script:
   - make build
