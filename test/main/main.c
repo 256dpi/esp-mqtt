@@ -14,7 +14,7 @@
 #define MQTT_USER "try"
 #define MQTT_PASS "try"
 
-static TaskHandle_t task;
+static TaskHandle_t task = NULL;
 
 static void process(void * p) {
   for(;;) {

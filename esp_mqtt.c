@@ -11,7 +11,7 @@
 
 #define ESP_MQTT_LOG_TAG "esp_mqtt"
 
-static SemaphoreHandle_t esp_mqtt_mutex;
+static SemaphoreHandle_t esp_mqtt_mutex = NULL;
 
 #define ESP_MQTT_LOCK() \
   do {                  \
@@ -19,7 +19,7 @@ static SemaphoreHandle_t esp_mqtt_mutex;
 
 #define ESP_MQTT_UNLOCK() xSemaphoreGive(esp_mqtt_mutex)
 
-static TaskHandle_t esp_mqtt_task;
+static TaskHandle_t esp_mqtt_task = NULL;
 
 static struct {
   char *host;
@@ -270,7 +270,7 @@ void esp_mqtt_start(const char *host, unsigned int port, const char *client_id, 
 
   // create mqtt thread
   ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_start: create task");
-  xTaskCreatePinnedToCore(esp_mqtt_process, "core-mqtt", 4096, NULL, 5, &esp_mqtt_task, 1);
+  xTaskCreatePinnedToCore(esp_mqtt_process, "esp_mqtt", 4096, NULL, 5, &esp_mqtt_task, 1);
 
   // set local flag
   esp_mqtt_running = true;
