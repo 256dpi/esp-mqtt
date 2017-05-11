@@ -1,0 +1,8 @@
+dist: trusty
+sudo: false
+
+language:
+  - cpp
+
+script:
+  - make build
