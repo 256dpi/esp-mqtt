@@ -16,8 +16,8 @@
 
 static TaskHandle_t task = NULL;
 
-static void process(void * p) {
-  for(;;) {
+static void process(void *p) {
+  for (;;) {
     esp_mqtt_publish_str("hello", "world", 0, false);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
