@@ -1,1 +1,43 @@
 # esp-mqtt
+
+**MQTT library for the esp-idf based on the lwmqtt project**
+
+This library bundles the lwmqtt client and adds a simple async API similar to other esp networking libraries.
+
+## Installation
+
+You can install the component by adding it as a git submodule:
+
+```bash
+git submodule add https://github.com/256dpi/esp-mqtt.git components/esp-mqtt
+```
+
+## API
+
+Initialize the component once by passing the necessary callbacks:
+
+```c++
+void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb);
+```
+
+Then when the WiFi connection has been established start the mqtt process:
+
+```c++
+void esp_mqtt_start(const char *host, unsigned int port, const char *client_id,
+                    const char *username, const char *password);
+```
+
+When the client has connected interact with the broker:
+
+```c++
+bool esp_mqtt_subscribe(const char *topic, int qos);
+bool esp_mqtt_unsubscribe(const char *topic);
+bool esp_mqtt_publish(const char *topic, void *payload, uint16_t len, int qos, bool retained);
+bool esp_mqtt_publish_str(const char *topic, const char *payload, int qos, bool retained);
+```
+
+If the WiFi connection has been lose, stop the process:
+
+```c++
+void esp_mqtt_stop();
+```
