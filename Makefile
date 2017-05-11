@@ -23,3 +23,8 @@ build: test/xtensa-esp32-elf test/esp-idf
 
 flash:
 	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make flash
+
+monitor:
+	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make monitor
+
+run: build flash monitor
