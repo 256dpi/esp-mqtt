@@ -1,6 +1,9 @@
 #ifndef ESP_MQTT_H
 #define ESP_MQTT_H
 
+#include <stdint.h>
+#include <stdbool.h>
+
 /**
  * Default read and write buffer size to 256 bytes.
  */
