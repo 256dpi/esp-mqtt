@@ -14,7 +14,7 @@
 static SemaphoreHandle_t esp_mqtt_mutex;
 
 #define ESP_MQTT_LOCK() \
-  do {                   \
+  do {                  \
   } while (xSemaphoreTake(esp_mqtt_mutex, portMAX_DELAY) != pdPASS)
 
 #define ESP_MQTT_UNLOCK() xSemaphoreGive(esp_mqtt_mutex)
@@ -22,11 +22,11 @@ static SemaphoreHandle_t esp_mqtt_mutex;
 static TaskHandle_t esp_mqtt_task;
 
 static struct {
-  char * host;
+  char *host;
   uint16_t port;
-  char * client_id;
-  char * username;
-  char * password;
+  char *client_id;
+  char *username;
+  char *password;
 } esp_mqtt_config = {.host = NULL, .port = 1883, .client_id = NULL, .username = NULL, .password = NULL};
 
 static bool esp_mqtt_running = false;
