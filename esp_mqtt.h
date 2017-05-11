@@ -2,6 +2,27 @@
 #define ESP_MQTT_H
 
 /**
+ * Default read and write buffer size to 256 bytes.
+ */
+#ifndef ESP_MQTT_BUFFER_SIZE
+#define ESP_MQTT_BUFFER_SIZE 256
+#endif
+
+/**
+ * Default command timeout to 2000ms.
+ */
+#ifndef ESP_MQTT_COMMAND_TIMEOUT
+#define ESP_MQTT_COMMAND_TIMEOUT 2000
+#endif
+
+/**
+ * Default config string length to 32 bytes.
+ */
+#ifndef ESP_MQTT_CONF_STR_LENGTH
+#define ESP_MQTT_CONF_STR_LENGTH 32
+#endif
+
+/**
  * The statuses emitted by the callback.
  */
 typedef enum esp_mqtt_status_t { ESP_MQTT_STATUS_DISCONNECTED, ESP_MQTT_STATUS_CONNECTED } esp_mqtt_status_t;

@@ -21,14 +21,12 @@ static SemaphoreHandle_t esp_mqtt_mutex;
 
 static TaskHandle_t esp_mqtt_task;
 
-#define ESP_MQTT_CONF_SIZE 32
-
 static struct {
-  char host[ESP_MQTT_CONF_SIZE];
+  char host[ESP_MQTT_CONF_STR_LENGTH];
   uint16_t port;
-  char client_id[ESP_MQTT_CONF_SIZE];
-  char username[ESP_MQTT_CONF_SIZE];
-  char password[ESP_MQTT_CONF_SIZE];
+  char client_id[ESP_MQTT_CONF_STR_LENGTH];
+  char username[ESP_MQTT_CONF_STR_LENGTH];
+  char password[ESP_MQTT_CONF_STR_LENGTH];
 } esp_mqtt_config;
 
 static bool esp_mqtt_running = false;
@@ -39,13 +37,9 @@ static esp_mqtt_message_callback_t esp_mqtt_message_callback = NULL;
 
 static lwmqtt_client_t esp_mqtt_client;
 
-#define ESP_MQTT_COMMAND_TIMEOUT 2000
-
 static esp_lwmqtt_network_t esp_mqtt_network = esp_lwmqtt_default_network;
 
 static esp_lwmqtt_timer_t esp_mqtt_timer1, esp_mqtt_timer2;
-
-#define ESP_MQTT_BUFFER_SIZE 256
 
 static unsigned char esp_mqtt_send_buffer[ESP_MQTT_BUFFER_SIZE];
 static unsigned char esp_mqtt_read_buffer[ESP_MQTT_BUFFER_SIZE + 1];  // plus null termination
