@@ -55,9 +55,9 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
 
 static void esp_mqtt_message_handler(lwmqtt_client_t *c, void *ref, lwmqtt_string_t *topic, lwmqtt_message_t *msg) {
   // copy and null terminate topic
-  char prefixed_topic[topic->len + 1];
-  memcpy(prefixed_topic, topic->data, (size_t)topic->len);
-  prefixed_topic[topic->len] = 0;
+  char terminated_topic[topic->len + 1];
+  memcpy(terminated_topic, topic->data, (size_t)topic->len);
+  terminated_topic[topic->len] = 0;
 
   // null terminate payload
   char *payload = msg->payload;
@@ -65,7 +65,7 @@ static void esp_mqtt_message_handler(lwmqtt_client_t *c, void *ref, lwmqtt_strin
 
   // call message callback without the locks to overcome any race condition
   ESP_MQTT_UNLOCK();
-  esp_mqtt_message_callback(topic->data, payload, (unsigned int)msg->payload_len);
+  esp_mqtt_message_callback(terminated_topic, payload, (unsigned int)msg->payload_len);
   ESP_MQTT_LOCK();
 }
 
