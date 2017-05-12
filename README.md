@@ -1,5 +1,7 @@
 # esp-mqtt
 
+[![Build Status](https://travis-ci.org/256dpi/esp-mqtt.svg?branch=master)](https://travis-ci.org/256dpi/esp-mqtt)
+
 **MQTT component for esp-idf projects based on the lwmqtt library**
 
 This component bundles the lwmqtt client and adds a simple async API similar to other esp networking components.
