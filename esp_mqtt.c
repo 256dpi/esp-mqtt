@@ -21,6 +21,9 @@ static SemaphoreHandle_t esp_mqtt_mutex = NULL;
 
 static TaskHandle_t esp_mqtt_task = NULL;
 
+static int esp_mqtt_buffer_size;
+static int esp_mqtt_command_timeout;
+
 static struct {
   char *host;
   uint16_t port;
@@ -41,13 +44,20 @@ static esp_lwmqtt_network_t esp_mqtt_network = esp_lwmqtt_default_network;
 
 static esp_lwmqtt_timer_t esp_mqtt_timer1, esp_mqtt_timer2;
 
-static unsigned char esp_mqtt_send_buffer[ESP_MQTT_BUFFER_SIZE];
-static unsigned char esp_mqtt_read_buffer[ESP_MQTT_BUFFER_SIZE + 1];  // plus null termination
+static unsigned char *esp_mqtt_send_buffer;
+static unsigned char *esp_mqtt_read_buffer;
 
-void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb) {
+void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, int buffer_size,
+                   int command_timeout) {
   // set callbacks
   esp_mqtt_status_callback = scb;
   esp_mqtt_message_callback = mcb;
+  esp_mqtt_buffer_size = buffer_size;
+  esp_mqtt_command_timeout = command_timeout;
+
+  // allocate buffers
+  esp_mqtt_send_buffer = malloc((size_t)buffer_size);
+  esp_mqtt_read_buffer = malloc((size_t)buffer_size + 1);  // plus null termination
 
   // create mutex
   esp_mqtt_mutex = xSemaphoreCreateMutex();
@@ -74,7 +84,7 @@ static bool esp_mqtt_process_connect() {
   ESP_MQTT_LOCK();
 
   // initialize the client
-  lwmqtt_init(&esp_mqtt_client, esp_mqtt_send_buffer, ESP_MQTT_BUFFER_SIZE, esp_mqtt_read_buffer, ESP_MQTT_BUFFER_SIZE);
+  lwmqtt_init(&esp_mqtt_client, esp_mqtt_send_buffer, esp_mqtt_buffer_size, esp_mqtt_read_buffer, esp_mqtt_buffer_size);
 
   lwmqtt_set_network(&esp_mqtt_client, &esp_mqtt_network, esp_lwmqtt_network_read, esp_lwmqtt_network_write);
   lwmqtt_set_timers(&esp_mqtt_client, &esp_mqtt_timer1, &esp_mqtt_timer2, esp_lwmqtt_timer_set, esp_lwmqtt_timer_get);
@@ -97,7 +107,7 @@ static bool esp_mqtt_process_connect() {
 
   // attempt connection
   lwmqtt_return_code_t return_code;
-  err = lwmqtt_connect(&esp_mqtt_client, &options, NULL, &return_code, ESP_MQTT_COMMAND_TIMEOUT);
+  err = lwmqtt_connect(&esp_mqtt_client, &options, NULL, &return_code, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_connect: %d", err);
     ESP_MQTT_UNLOCK();
@@ -161,7 +171,7 @@ static void esp_mqtt_process(void *p) {
 
     // yield to client if data is available
     if (available > 0) {
-      err = lwmqtt_yield(&esp_mqtt_client, available, ESP_MQTT_COMMAND_TIMEOUT);
+      err = lwmqtt_yield(&esp_mqtt_client, available, esp_mqtt_command_timeout);
       if (err != LWMQTT_SUCCESS) {
         ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_yield: %d", err);
         break;
@@ -169,7 +179,7 @@ static void esp_mqtt_process(void *p) {
     }
 
     // do mqtt background work
-    err = lwmqtt_keep_alive(&esp_mqtt_client, ESP_MQTT_COMMAND_TIMEOUT);
+    err = lwmqtt_keep_alive(&esp_mqtt_client, esp_mqtt_command_timeout);
     if (err != LWMQTT_SUCCESS) {
       ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_keep_alive: %d", err);
       break;
@@ -287,7 +297,7 @@ bool esp_mqtt_subscribe(const char *topic, int qos) {
   }
 
   // subscribe to topic
-  lwmqtt_err_t err = lwmqtt_subscribe(&esp_mqtt_client, topic, (lwmqtt_qos_t)qos, ESP_MQTT_COMMAND_TIMEOUT);
+  lwmqtt_err_t err = lwmqtt_subscribe(&esp_mqtt_client, topic, (lwmqtt_qos_t)qos, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_subscribe: %d", err);
     ESP_MQTT_UNLOCK();
@@ -312,7 +322,7 @@ bool esp_mqtt_unsubscribe(const char *topic) {
   }
 
   // unsubscribe from topic
-  lwmqtt_err_t err = lwmqtt_unsubscribe(&esp_mqtt_client, topic, ESP_MQTT_COMMAND_TIMEOUT);
+  lwmqtt_err_t err = lwmqtt_unsubscribe(&esp_mqtt_client, topic, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_unsubscribe: %d", err);
     ESP_MQTT_UNLOCK();
@@ -344,7 +354,7 @@ bool esp_mqtt_publish(const char *topic, void *payload, uint16_t len, int qos, b
   message.payload_len = len;
 
   // publish message
-  lwmqtt_err_t err = lwmqtt_publish(&esp_mqtt_client, topic, &message, ESP_MQTT_COMMAND_TIMEOUT);
+  lwmqtt_err_t err = lwmqtt_publish(&esp_mqtt_client, topic, &message, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_publish: %d", err);
     ESP_MQTT_UNLOCK();
@@ -355,10 +365,6 @@ bool esp_mqtt_publish(const char *topic, void *payload, uint16_t len, int qos, b
   ESP_MQTT_UNLOCK();
 
   return true;
-}
-
-bool esp_mqtt_publish_str(const char *topic, const char *payload, int qos, bool retained) {
-  return esp_mqtt_publish(topic, (char *)payload, (uint16_t)strlen(payload), qos, retained);
 }
 
 void esp_mqtt_stop() {
@@ -373,7 +379,7 @@ void esp_mqtt_stop() {
 
   // attempt to properly disconnect a connected client
   if (esp_mqtt_connected) {
-    lwmqtt_err_t err = lwmqtt_disconnect(&esp_mqtt_client, ESP_MQTT_COMMAND_TIMEOUT);
+    lwmqtt_err_t err = lwmqtt_disconnect(&esp_mqtt_client, esp_mqtt_command_timeout);
     if (err != LWMQTT_SUCCESS) {
       ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_disconnect: %d", err);
     }

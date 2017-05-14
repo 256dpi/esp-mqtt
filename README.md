@@ -36,7 +36,6 @@ When the client has connected, interact with the broker:
 bool esp_mqtt_subscribe(const char *topic, int qos);
 bool esp_mqtt_unsubscribe(const char *topic);
 bool esp_mqtt_publish(const char *topic, void *payload, uint16_t len, int qos, bool retained);
-bool esp_mqtt_publish_str(const char *topic, const char *payload, int qos, bool retained);
 ```
 
 If the WiFi connection has been lost, stop the process:

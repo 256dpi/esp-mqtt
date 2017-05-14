@@ -17,7 +17,9 @@ static TaskHandle_t task = NULL;
 
 static void process(void *p) {
   for (;;) {
-    esp_mqtt_publish_str("hello", "world", 0, false);
+    const char *payload = "world";
+
+    esp_mqtt_publish("hello", (void *)payload, (uint16_t)strlen(payload), 0, false);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 }
@@ -67,7 +69,6 @@ void app_main() {
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 
   ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-  ESP_ERROR_CHECK(esp_wifi_set_auto_connect(false));
   ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
 
   wifi_config_t wifi_config = {
@@ -81,5 +82,5 @@ void app_main() {
   ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
   ESP_ERROR_CHECK(esp_wifi_start());
 
-  esp_mqtt_init(status_callback, message_callback);
+  esp_mqtt_init(status_callback, message_callback, 256, 2000);
 }
