@@ -20,7 +20,8 @@ git submodule update --init --recursive
 Initialize the component once by passing the necessary callbacks:
 
 ```c++
-void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb);
+void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb,
+                   int buffer_size, int command_timeout);
 ```
 
 When the WiFi connection has been established, start the process:
