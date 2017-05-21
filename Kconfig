@@ -1,5 +1,13 @@
 menu "esp-mqtt"
 
+config ESP_MQTT_ENABLED
+    bool "Enable the MQTT component"
+    select LWIP_SO_RCVBUF
+    default y
+    help
+        This is currently only used to enforce the selection of LWIP_SO_RCVBUF.
+        Disabling the component does not actually disable something.
+
 config ESP_MQTT_TASK_STACK_SIZE
     int "MQTT background process task stack size"
     default 4096
