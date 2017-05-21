@@ -1,0 +1,11 @@
+menu "esp-mqtt"
+
+config ESP_MQTT_TASK_STACK_SIZE
+    int "MQTT background process task stack size"
+    default 4096
+
+config ESP_MQTT_TASK_STACK_PRIORITY
+    int "MQTT background process task priority"
+    default 5
+
+endmenu
