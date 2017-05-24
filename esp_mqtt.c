@@ -44,7 +44,7 @@ static esp_lwmqtt_network_t esp_mqtt_network = esp_lwmqtt_default_network;
 
 static esp_lwmqtt_timer_t esp_mqtt_timer1, esp_mqtt_timer2;
 
-static unsigned char *esp_mqtt_send_buffer;
+static unsigned char *esp_mqtt_write_buffer;
 static unsigned char *esp_mqtt_read_buffer;
 
 void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, int buffer_size,
@@ -56,7 +56,7 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
   esp_mqtt_command_timeout = (unsigned int)command_timeout;
 
   // allocate buffers
-  esp_mqtt_send_buffer = malloc((size_t)buffer_size);
+  esp_mqtt_write_buffer = malloc((size_t)buffer_size);
   esp_mqtt_read_buffer = malloc((size_t)buffer_size + 1);  // plus null termination
 
   // create mutex
@@ -84,8 +84,7 @@ static bool esp_mqtt_process_connect() {
   ESP_MQTT_LOCK();
 
   // initialize the client
-  lwmqtt_init(&esp_mqtt_client, esp_mqtt_send_buffer, esp_mqtt_buffer_size, esp_mqtt_read_buffer, esp_mqtt_buffer_size);
-
+  lwmqtt_init(&esp_mqtt_client, esp_mqtt_write_buffer, esp_mqtt_buffer_size, esp_mqtt_read_buffer, esp_mqtt_buffer_size);
   lwmqtt_set_network(&esp_mqtt_client, &esp_mqtt_network, esp_lwmqtt_network_read, esp_lwmqtt_network_write);
   lwmqtt_set_timers(&esp_mqtt_client, &esp_mqtt_timer1, &esp_mqtt_timer2, esp_lwmqtt_timer_set, esp_lwmqtt_timer_get);
   lwmqtt_set_callback(&esp_mqtt_client, NULL, esp_mqtt_message_handler);
