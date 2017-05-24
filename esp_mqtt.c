@@ -80,9 +80,6 @@ static void esp_mqtt_message_handler(lwmqtt_client_t *c, void *ref, lwmqtt_strin
 }
 
 static bool esp_mqtt_process_connect() {
-  // acquire mutex
-  ESP_MQTT_LOCK();
-
   // initialize the client
   lwmqtt_init(&esp_mqtt_client, esp_mqtt_write_buffer, esp_mqtt_buffer_size, esp_mqtt_read_buffer, esp_mqtt_buffer_size);
   lwmqtt_set_network(&esp_mqtt_client, &esp_mqtt_network, esp_lwmqtt_network_read, esp_lwmqtt_network_write);
@@ -93,7 +90,6 @@ static bool esp_mqtt_process_connect() {
   lwmqtt_err_t err = esp_lwmqtt_network_connect(&esp_mqtt_network, esp_mqtt_config.host, esp_mqtt_config.port);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_connect: %d", err);
-    ESP_MQTT_UNLOCK();
     return false;
   }
 
@@ -109,12 +105,8 @@ static bool esp_mqtt_process_connect() {
   err = lwmqtt_connect(&esp_mqtt_client, &options, NULL, &return_code, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_connect: %d", err);
-    ESP_MQTT_UNLOCK();
     return false;
   }
-
-  // release mutex
-  ESP_MQTT_UNLOCK();
 
   return true;
 }
@@ -125,14 +117,26 @@ static void esp_mqtt_process(void *p) {
     // log attempt
     ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_process: begin connection attempt");
 
+    // acquire mutex
+    ESP_MQTT_LOCK();
+
     // make connection attempt
     if (esp_mqtt_process_connect()) {
       // log success
       ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_process: attempt successful");
 
+      // set local flag
+      esp_mqtt_connected = true;
+
+      // release mutex
+      ESP_MQTT_UNLOCK();
+
       // exit loop
       break;
     }
+
+    // release mutex
+    ESP_MQTT_UNLOCK();
 
     // log fail
     ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_process: attempt failed");
@@ -140,15 +144,6 @@ static void esp_mqtt_process(void *p) {
     // delay loop by 1s and yield to other processes
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
-
-  // acquire mutex
-  ESP_MQTT_LOCK();
-
-  // set local flag
-  esp_mqtt_connected = true;
-
-  // release mutex
-  ESP_MQTT_UNLOCK();
 
   // call callback if existing
   if (esp_mqtt_status_callback) {
