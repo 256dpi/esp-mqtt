@@ -66,7 +66,7 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network);
  * @param available
  * @return
  */
-lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network_t *network, int *available);
+lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network_t *network, unsigned int *available);
 
 /**
  * The lwmqtt network read callback for the esp platform.

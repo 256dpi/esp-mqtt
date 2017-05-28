@@ -56,8 +56,8 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network) {
   netconn_delete(network->conn);
 }
 
-lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network_t *network, int *available) {
-  *available = network->conn->recv_avail;
+lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network_t *network, unsigned int *available) {
+  *available = (unsigned int)network->conn->recv_avail;
   return LWMQTT_SUCCESS;
 }
 

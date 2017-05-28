@@ -156,7 +156,7 @@ static void esp_mqtt_process(void *p) {
     ESP_MQTT_LOCK();
 
     // get the available bytes to be read
-    int available = 0;
+    unsigned int available = 0;
     lwmqtt_err_t err = esp_lwmqtt_network_peek(&esp_mqtt_client, &esp_mqtt_network, &available);
     if (err != LWMQTT_SUCCESS) {
       ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_peek: %d", err);
