@@ -30,7 +30,7 @@ typedef void (*esp_mqtt_message_callback_t)(const char *topic, const char *paylo
  * @param command_timeout - The command timeout.
  */
 void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, int buffer_size,
-                   int command_timeout);
+                   unsigned int command_timeout);
 
 /**
  * Start the MQTT process.

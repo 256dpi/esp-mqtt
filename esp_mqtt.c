@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
@@ -47,41 +48,77 @@ static esp_lwmqtt_timer_t esp_mqtt_timer1, esp_mqtt_timer2;
 static unsigned char *esp_mqtt_write_buffer;
 static unsigned char *esp_mqtt_read_buffer;
 
+static QueueHandle_t esp_mqtt_event_queue = NULL;
+
+typedef struct {
+  lwmqtt_string_t topic;
+  lwmqtt_message_t message;
+} esp_mqtt_event_t;
+
 void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, int buffer_size,
-                   int command_timeout) {
+                   unsigned int command_timeout) {
   // set callbacks
   esp_mqtt_status_callback = scb;
   esp_mqtt_message_callback = mcb;
   esp_mqtt_buffer_size = buffer_size;
-  esp_mqtt_command_timeout = (unsigned int)command_timeout;
+  esp_mqtt_command_timeout = command_timeout;
 
   // allocate buffers
   esp_mqtt_write_buffer = malloc((size_t)buffer_size);
-  esp_mqtt_read_buffer = malloc((size_t)buffer_size + 1);  // plus null termination
+  esp_mqtt_read_buffer = malloc((size_t)buffer_size);
 
   // create mutex
   esp_mqtt_mutex = xSemaphoreCreateMutex();
+
+  // create queue
+  esp_mqtt_event_queue = xQueueCreate(CONFIG_ESP_MQTT_EVENT_QUEUE_SIZE, sizeof(esp_mqtt_event_t *));
 }
 
 static void esp_mqtt_message_handler(lwmqtt_client_t *c, void *ref, lwmqtt_string_t *topic, lwmqtt_message_t *msg) {
-  // copy and null terminate topic
-  char terminated_topic[topic->len + 1];
-  memcpy(terminated_topic, topic->data, (size_t)topic->len);
-  terminated_topic[topic->len] = 0;
+  // create message
+  esp_mqtt_event_t *evt = malloc(sizeof(esp_mqtt_event_t));
 
-  // null terminate payload
-  char *payload = msg->payload;
+  // copy topic with additional null termination
+  evt->topic.len = topic->len;
+  evt->topic.data = malloc((size_t)topic->len + 1);
+  memcpy(evt->topic.data, topic->data, (size_t)topic->len);
+  evt->topic.data[topic->len] = 0;
+
+  // copy message with additional null termination
+  evt->message.retained = msg->retained;
+  evt->message.qos = msg->qos;
+  evt->message.payload_len = msg->payload_len;
+  char *payload = malloc((size_t)msg->payload_len + 1);
+  memcpy(payload, msg->payload, (size_t)msg->payload_len);
   payload[msg->payload_len] = 0;
+  evt->message.payload = payload;
 
-  // call message callback without the locks to overcome any race condition
-  ESP_MQTT_UNLOCK();
-  esp_mqtt_message_callback(terminated_topic, payload, (unsigned int)msg->payload_len);
-  ESP_MQTT_LOCK();
+  // queue event
+  assert(xQueueSend(esp_mqtt_event_queue, &evt, 0) == pdTRUE);
+}
+
+static void esp_mqtt_dispatch_events() {
+  // prepare event
+  esp_mqtt_event_t *evt = NULL;
+
+  // receive next event
+  while (xQueueReceive(esp_mqtt_event_queue, &evt, 0) == pdTRUE) {
+    // call callback if existing
+    if (esp_mqtt_message_callback) {
+      esp_mqtt_message_callback(evt->topic.data, evt->message.payload, (unsigned int)evt->message.payload_len);
+    }
+
+    // free data
+    free(evt->topic.data);
+    free(evt->message.payload);
+    free(evt);
+  }
 }
 
 static bool esp_mqtt_process_connect() {
   // initialize the client
-  lwmqtt_init(&esp_mqtt_client, esp_mqtt_write_buffer, esp_mqtt_buffer_size, esp_mqtt_read_buffer, esp_mqtt_buffer_size);
+  lwmqtt_init(&esp_mqtt_client, esp_mqtt_write_buffer, esp_mqtt_buffer_size, esp_mqtt_read_buffer,
+              esp_mqtt_buffer_size);
   lwmqtt_set_network(&esp_mqtt_client, &esp_mqtt_network, esp_lwmqtt_network_read, esp_lwmqtt_network_write);
   lwmqtt_set_timers(&esp_mqtt_client, &esp_mqtt_timer1, &esp_mqtt_timer2, esp_lwmqtt_timer_set, esp_lwmqtt_timer_get);
   lwmqtt_set_callback(&esp_mqtt_client, NULL, esp_mqtt_message_handler);
@@ -152,6 +189,9 @@ static void esp_mqtt_process(void *p) {
 
   // yield loop
   for (;;) {
+    // dispatch queued events
+    esp_mqtt_dispatch_events();
+
     // acquire mutex
     ESP_MQTT_LOCK();
 
@@ -181,6 +221,9 @@ static void esp_mqtt_process(void *p) {
 
     // release mutex
     ESP_MQTT_UNLOCK();
+
+    // dispatch queued events
+    esp_mqtt_dispatch_events();
 
     // yield to other processes
     vTaskDelay(1);
