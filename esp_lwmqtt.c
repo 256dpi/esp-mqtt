@@ -4,7 +4,7 @@
 
 #include "esp_lwmqtt.h"
 
-void esp_lwmqtt_timer_set(lwmqtt_client_t *client, void *ref, unsigned int timeout) {
+void esp_lwmqtt_timer_set(lwmqtt_client_t *client, void *ref, int timeout) {
   // cast timer reference
   esp_lwmqtt_timer_t *t = (esp_lwmqtt_timer_t *)ref;
 
@@ -12,11 +12,11 @@ void esp_lwmqtt_timer_set(lwmqtt_client_t *client, void *ref, unsigned int timeo
   t->deadline = (xTaskGetTickCount() / portTICK_PERIOD_MS) + timeout;
 }
 
-unsigned int esp_lwmqtt_timer_get(lwmqtt_client_t *client, void *ref) {
+int esp_lwmqtt_timer_get(lwmqtt_client_t *client, void *ref) {
   // cast timer reference
   esp_lwmqtt_timer_t *t = (esp_lwmqtt_timer_t *)ref;
 
-  return (unsigned int)(t->deadline - (xTaskGetTickCount() / portTICK_PERIOD_MS));
+  return (int)(t->deadline - (xTaskGetTickCount() / portTICK_PERIOD_MS));
 }
 
 lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *host, int port) {
@@ -52,13 +52,13 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network) {
   netconn_delete(network->conn);
 }
 
-lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network_t *network, unsigned int *available) {
-  *available = (unsigned int)network->conn->recv_avail;
+lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network_t *network, int *available) {
+  *available = network->conn->recv_avail;
   return LWMQTT_SUCCESS;
 }
 
-lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, unsigned char *buffer, int len, int *read,
-                                     unsigned int timeout) {
+lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, void *buffer, int len, int *read,
+                                     int timeout) {
   // cast network reference
   esp_lwmqtt_network_t *network = (esp_lwmqtt_network_t *)ref;
 
@@ -122,13 +122,15 @@ lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, unsigne
   // otherwise save the rest and current offset
   network->rest_buf = buf;
   network->rest_len = bytes - (len - copied_len);
+
+  // adjust counter
   *read += len;
 
   return LWMQTT_SUCCESS;
 }
 
-lwmqtt_err_t esp_lwmqtt_network_write(lwmqtt_client_t *client, void *ref, unsigned char *buffer, int len, int *sent,
-                                      unsigned int timeout) {
+lwmqtt_err_t esp_lwmqtt_network_write(lwmqtt_client_t *client, void *ref, void *buffer, int len, int *sent,
+                                      int timeout) {
   // cast network reference
   esp_lwmqtt_network_t *network = (esp_lwmqtt_network_t *)ref;
 
@@ -138,7 +140,7 @@ lwmqtt_err_t esp_lwmqtt_network_write(lwmqtt_client_t *client, void *ref, unsign
   // send data
   err_t err = netconn_write(network->conn, buffer, (size_t)len, NETCONN_COPY);
   if (err != ERR_OK) {
-    return LWMQTT_NETWORK_WRITE_ERR;
+    return LWMQTT_NETWORK_WRITE_ERROR;
   }
 
   // adjust counter

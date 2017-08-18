@@ -15,7 +15,7 @@ typedef struct { unsigned long deadline; } esp_lwmqtt_timer_t;
  * @param client
  * @param ref
  */
-void esp_lwmqtt_timer_set(lwmqtt_client_t *client, void *ref, unsigned int);
+void esp_lwmqtt_timer_set(lwmqtt_client_t *client, void *ref, int);
 
 /**
  * The lwmqtt timer get callback for the esp platform.
@@ -24,7 +24,7 @@ void esp_lwmqtt_timer_set(lwmqtt_client_t *client, void *ref, unsigned int);
  * @param ref
  * @return
  */
-unsigned int esp_lwmqtt_timer_get(lwmqtt_client_t *client, void *ref);
+int esp_lwmqtt_timer_get(lwmqtt_client_t *client, void *ref);
 
 /**
  * The lwmqtt network object for the esp platform.
@@ -66,7 +66,7 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network);
  * @param available
  * @return
  */
-lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network_t *network, unsigned int *available);
+lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network_t *network, int *available);
 
 /**
  * The lwmqtt network read callback for the esp platform.
@@ -79,8 +79,7 @@ lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network
  * @param timeout
  * @return
  */
-lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, unsigned char *buf, int len, int *read,
-                                     unsigned int timeout);
+lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, void *buf, int len, int *read, int timeout);
 /**
  * The lwmqtt network write callback for the esp platform.
  *
@@ -92,7 +91,6 @@ lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, unsigne
  * @param timeout
  * @return
  */
-lwmqtt_err_t esp_lwmqtt_network_write(lwmqtt_client_t *client, void *ref, unsigned char *buf, int len, int *sent,
-                                      unsigned int timeout);
+lwmqtt_err_t esp_lwmqtt_network_write(lwmqtt_client_t *client, void *ref, void *buf, int len, int *sent, int timeout);
 
 #endif  // ESP_LWMQTT_H
