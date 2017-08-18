@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "esp_lwmqtt.h"
-
 #include "esp_mqtt.h"
 
 #define ESP_MQTT_LOG_TAG "esp_mqtt"
@@ -22,11 +21,11 @@ static SemaphoreHandle_t esp_mqtt_mutex = NULL;
 static TaskHandle_t esp_mqtt_task = NULL;
 
 static int esp_mqtt_buffer_size;
-static unsigned int esp_mqtt_command_timeout;
+static int esp_mqtt_command_timeout;
 
 static struct {
   char *host;
-  uint16_t port;
+  int port;
   char *client_id;
   char *username;
   char *password;
@@ -44,8 +43,8 @@ static esp_lwmqtt_network_t esp_mqtt_network = esp_lwmqtt_default_network;
 
 static esp_lwmqtt_timer_t esp_mqtt_timer1, esp_mqtt_timer2;
 
-static unsigned char *esp_mqtt_write_buffer;
-static unsigned char *esp_mqtt_read_buffer;
+static void *esp_mqtt_write_buffer;
+static void *esp_mqtt_read_buffer;
 
 static QueueHandle_t esp_mqtt_event_queue = NULL;
 
@@ -55,7 +54,7 @@ typedef struct {
 } esp_mqtt_event_t;
 
 void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, int buffer_size,
-                   unsigned int command_timeout) {
+                   int command_timeout) {
   // set callbacks
   esp_mqtt_status_callback = scb;
   esp_mqtt_message_callback = mcb;
@@ -73,7 +72,7 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
   esp_mqtt_event_queue = xQueueCreate(CONFIG_ESP_MQTT_EVENT_QUEUE_SIZE, sizeof(esp_mqtt_event_t *));
 }
 
-static void esp_mqtt_message_handler(lwmqtt_client_t *c, void *ref, lwmqtt_string_t *topic, lwmqtt_message_t *msg) {
+static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_string_t *topic, lwmqtt_message_t *msg) {
   // create message
   esp_mqtt_event_t *evt = malloc(sizeof(esp_mqtt_event_t));
 
@@ -109,7 +108,7 @@ static void esp_mqtt_dispatch_events() {
   while (xQueueReceive(esp_mqtt_event_queue, &evt, 0) == pdTRUE) {
     // call callback if existing
     if (esp_mqtt_message_callback) {
-      esp_mqtt_message_callback(evt->topic.data, evt->message.payload, (unsigned int)evt->message.payload_len);
+      esp_mqtt_message_callback(evt->topic.data, evt->message.payload, evt->message.payload_len);
     }
 
     // free data
@@ -200,7 +199,7 @@ static void esp_mqtt_process(void *p) {
     ESP_MQTT_LOCK();
 
     // get the available bytes to be read
-    unsigned int available = 0;
+    int available = 0;
     lwmqtt_err_t err = esp_lwmqtt_network_peek(&esp_mqtt_client, &esp_mqtt_network, &available);
     if (err != LWMQTT_SUCCESS) {
       ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_peek: %d", err);
@@ -256,7 +255,7 @@ static void esp_mqtt_process(void *p) {
   vTaskDelete(NULL);
 }
 
-void esp_mqtt_start(const char *host, unsigned int port, const char *client_id, const char *username,
+void esp_mqtt_start(const char *host, int port, const char *client_id, const char *username,
                     const char *password) {
   // acquire mutex
   ESP_MQTT_LOCK();
@@ -298,7 +297,7 @@ void esp_mqtt_start(const char *host, unsigned int port, const char *client_id, 
   }
 
   // set port
-  esp_mqtt_config.port = (uint16_t)port;
+  esp_mqtt_config.port = port;
 
   // set client id if provided
   if (client_id != NULL) {
@@ -339,9 +338,9 @@ bool esp_mqtt_subscribe(const char *topic, int qos) {
   }
 
   // subscribe to topic
-  lwmqtt_err_t err = lwmqtt_subscribe(&esp_mqtt_client, topic, (lwmqtt_qos_t)qos, esp_mqtt_command_timeout);
+  lwmqtt_err_t err = lwmqtt_subscribe_one(&esp_mqtt_client, topic, (lwmqtt_qos_t)qos, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
-    ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_subscribe: %d", err);
+    ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_subscribe_one: %d", err);
     ESP_MQTT_UNLOCK();
     return false;
   }
@@ -364,9 +363,9 @@ bool esp_mqtt_unsubscribe(const char *topic) {
   }
 
   // unsubscribe from topic
-  lwmqtt_err_t err = lwmqtt_unsubscribe(&esp_mqtt_client, topic, esp_mqtt_command_timeout);
+  lwmqtt_err_t err = lwmqtt_unsubscribe_one(&esp_mqtt_client, topic, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
-    ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_unsubscribe: %d", err);
+    ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_unsubscribe_one: %d", err);
     ESP_MQTT_UNLOCK();
     return false;
   }
@@ -377,7 +376,7 @@ bool esp_mqtt_unsubscribe(const char *topic) {
   return true;
 }
 
-bool esp_mqtt_publish(const char *topic, void *payload, uint16_t len, int qos, bool retained) {
+bool esp_mqtt_publish(const char *topic, void *payload, int len, int qos, bool retained) {
   // acquire mutex
   ESP_MQTT_LOCK();
 

@@ -19,7 +19,7 @@ static void process(void *p) {
   for (;;) {
     const char *payload = "world";
 
-    esp_mqtt_publish("hello", (void *)payload, (uint16_t)strlen(payload), 0, false);
+    esp_mqtt_publish("hello", (void *)payload, (int)strlen(payload), 0, false);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 }
@@ -58,7 +58,7 @@ static void status_callback(esp_mqtt_status_t status) {
   }
 }
 
-static void message_callback(const char *topic, const char *payload, unsigned int len) {
+static void message_callback(const char *topic, const char *payload, int len) {
   printf("incoming: %s => %s\n", topic, payload);
 }
 
