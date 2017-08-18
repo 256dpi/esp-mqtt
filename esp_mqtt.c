@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
@@ -94,7 +93,12 @@ static void esp_mqtt_message_handler(lwmqtt_client_t *c, void *ref, lwmqtt_strin
   evt->message.payload = payload;
 
   // queue event
-  assert(xQueueSend(esp_mqtt_event_queue, &evt, 0) == pdTRUE);
+  if (xQueueSend(esp_mqtt_event_queue, &evt, 0) != pdTRUE) {
+    ESP_LOGI(ESP_MQTT_LOG_TAG, "xQueueSend: queue is full, dropping message");
+    free(evt->topic.data);
+    free(evt->message.payload);
+    free(evt);
+  }
 }
 
 static void esp_mqtt_dispatch_events() {
