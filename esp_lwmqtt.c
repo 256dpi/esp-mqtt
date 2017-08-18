@@ -4,10 +4,6 @@
 
 #include "esp_lwmqtt.h"
 
-#ifndef CONFIG_LWIP_SO_RCVBUF
-#error "Please enable the 'Component config > LWIP > Enable SO_RCVBUF option' via 'make menuconfig'."
-#endif
-
 void esp_lwmqtt_timer_set(lwmqtt_client_t *client, void *ref, unsigned int timeout) {
   // cast timer reference
   esp_lwmqtt_timer_t *t = (esp_lwmqtt_timer_t *)ref;
