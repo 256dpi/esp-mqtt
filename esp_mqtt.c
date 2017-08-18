@@ -72,7 +72,8 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
   esp_mqtt_event_queue = xQueueCreate(CONFIG_ESP_MQTT_EVENT_QUEUE_SIZE, sizeof(esp_mqtt_event_t *));
 }
 
-static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_string_t *topic, lwmqtt_message_t *msg) {
+static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_string_t *topic,
+                                     lwmqtt_message_t *msg) {
   // create message
   esp_mqtt_event_t *evt = malloc(sizeof(esp_mqtt_event_t));
 
@@ -255,8 +256,7 @@ static void esp_mqtt_process(void *p) {
   vTaskDelete(NULL);
 }
 
-void esp_mqtt_start(const char *host, int port, const char *client_id, const char *username,
-                    const char *password) {
+void esp_mqtt_start(const char *host, int port, const char *client_id, const char *username, const char *password) {
   // acquire mutex
   ESP_MQTT_LOCK();
 
