@@ -21,6 +21,9 @@ test/esp-idf:
 erase: test/xtensa-esp32-elf test/esp-idf
 	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make erase_flash
 
+clean: test/xtensa-esp32-elf test/esp-idf
+	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make clean
+
 build: test/xtensa-esp32-elf test/esp-idf
 	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make
 
