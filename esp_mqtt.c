@@ -86,10 +86,9 @@ static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_
   evt->message.retained = msg.retained;
   evt->message.qos = msg.qos;
   evt->message.payload_len = msg.payload_len;
-  uint8_t *payload = malloc((size_t)msg.payload_len + 1);
-  memcpy(payload, msg.payload, (size_t)msg.payload_len);
-  payload[msg.payload_len] = 0;
-  evt->message.payload = payload;
+  evt->message.payload = malloc((size_t)msg.payload_len + 1);
+  memcpy(evt->message.payload, msg.payload, (size_t)msg.payload_len);
+  evt->message.payload[msg.payload_len] = 0;
 
   // queue event
   if (xQueueSend(esp_mqtt_event_queue, &evt, 0) != pdTRUE) {
