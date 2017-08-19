@@ -24,7 +24,7 @@ Initialize the component once by passing the necessary callbacks:
 
 ```c++
 void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb,
-                   int buffer_size, int command_timeout);
+                   size_t buffer_size, int command_timeout);
 ```
 
 When the WiFi connection has been established, start the process:
@@ -39,7 +39,7 @@ When the client has connected, interact with the broker:
 ```c++
 bool esp_mqtt_subscribe(const char *topic, int qos);
 bool esp_mqtt_unsubscribe(const char *topic);
-bool esp_mqtt_publish(const char *topic, void *payload, int len, int qos, bool retained);
+bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, bool retained);
 ```
 
 If the WiFi connection has been lost, stop the process:
