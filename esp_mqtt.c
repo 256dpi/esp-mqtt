@@ -20,7 +20,7 @@ static SemaphoreHandle_t esp_mqtt_mutex = NULL;
 
 static TaskHandle_t esp_mqtt_task = NULL;
 
-static int esp_mqtt_buffer_size;
+static size_t esp_mqtt_buffer_size;
 static int esp_mqtt_command_timeout;
 
 static struct {
@@ -53,7 +53,7 @@ typedef struct {
   lwmqtt_message_t message;
 } esp_mqtt_event_t;
 
-void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, int buffer_size,
+void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, size_t buffer_size,
                    int command_timeout) {
   // set callbacks
   esp_mqtt_status_callback = scb;
@@ -72,24 +72,23 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
   esp_mqtt_event_queue = xQueueCreate(CONFIG_ESP_MQTT_EVENT_QUEUE_SIZE, sizeof(esp_mqtt_event_t *));
 }
 
-static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_string_t *topic,
-                                     lwmqtt_message_t *msg) {
+static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_string_t topic, lwmqtt_message_t msg) {
   // create message
   esp_mqtt_event_t *evt = malloc(sizeof(esp_mqtt_event_t));
 
   // copy topic with additional null termination
-  evt->topic.len = topic->len;
-  evt->topic.data = malloc((size_t)topic->len + 1);
-  memcpy(evt->topic.data, topic->data, (size_t)topic->len);
-  evt->topic.data[topic->len] = 0;
+  evt->topic.len = topic.len;
+  evt->topic.data = malloc((size_t)topic.len + 1);
+  memcpy(evt->topic.data, topic.data, (size_t)topic.len);
+  evt->topic.data[topic.len] = 0;
 
   // copy message with additional null termination
-  evt->message.retained = msg->retained;
-  evt->message.qos = msg->qos;
-  evt->message.payload_len = msg->payload_len;
-  char *payload = malloc((size_t)msg->payload_len + 1);
-  memcpy(payload, msg->payload, (size_t)msg->payload_len);
-  payload[msg->payload_len] = 0;
+  evt->message.retained = msg.retained;
+  evt->message.qos = msg.qos;
+  evt->message.payload_len = msg.payload_len;
+  uint8_t *payload = malloc((size_t)msg.payload_len + 1);
+  memcpy(payload, msg.payload, (size_t)msg.payload_len);
+  payload[msg.payload_len] = 0;
   evt->message.payload = payload;
 
   // queue event
@@ -137,13 +136,13 @@ static bool esp_mqtt_process_connect() {
   // setup connect data
   lwmqtt_options_t options = lwmqtt_default_options;
   options.keep_alive = 10;
-  options.client_id = lwmqtt_str(esp_mqtt_config.client_id);
-  options.username = lwmqtt_str(esp_mqtt_config.username);
-  options.password = lwmqtt_str(esp_mqtt_config.password);
+  options.client_id = lwmqtt_string(esp_mqtt_config.client_id);
+  options.username = lwmqtt_string(esp_mqtt_config.username);
+  options.password = lwmqtt_string(esp_mqtt_config.password);
 
   // attempt connection
   lwmqtt_return_code_t return_code;
-  err = lwmqtt_connect(&esp_mqtt_client, &options, NULL, &return_code, esp_mqtt_command_timeout);
+  err = lwmqtt_connect(&esp_mqtt_client, options, NULL, &return_code, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_connect: %d", err);
     return false;
@@ -200,7 +199,7 @@ static void esp_mqtt_process(void *p) {
     ESP_MQTT_LOCK();
 
     // get the available bytes to be read
-    int available = 0;
+    size_t available = 0;
     lwmqtt_err_t err = esp_lwmqtt_network_peek(&esp_mqtt_client, &esp_mqtt_network, &available);
     if (err != LWMQTT_SUCCESS) {
       ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_peek: %d", err);
@@ -338,7 +337,8 @@ bool esp_mqtt_subscribe(const char *topic, int qos) {
   }
 
   // subscribe to topic
-  lwmqtt_err_t err = lwmqtt_subscribe_one(&esp_mqtt_client, topic, (lwmqtt_qos_t)qos, esp_mqtt_command_timeout);
+  lwmqtt_err_t err =
+      lwmqtt_subscribe_one(&esp_mqtt_client, lwmqtt_string(topic), (lwmqtt_qos_t)qos, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_subscribe_one: %d", err);
     ESP_MQTT_UNLOCK();
@@ -363,7 +363,7 @@ bool esp_mqtt_unsubscribe(const char *topic) {
   }
 
   // unsubscribe from topic
-  lwmqtt_err_t err = lwmqtt_unsubscribe_one(&esp_mqtt_client, topic, esp_mqtt_command_timeout);
+  lwmqtt_err_t err = lwmqtt_unsubscribe_one(&esp_mqtt_client, lwmqtt_string(topic), esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_unsubscribe_one: %d", err);
     ESP_MQTT_UNLOCK();
@@ -376,7 +376,7 @@ bool esp_mqtt_unsubscribe(const char *topic) {
   return true;
 }
 
-bool esp_mqtt_publish(const char *topic, void *payload, int len, int qos, bool retained) {
+bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, bool retained) {
   // acquire mutex
   ESP_MQTT_LOCK();
 
@@ -395,7 +395,7 @@ bool esp_mqtt_publish(const char *topic, void *payload, int len, int qos, bool r
   message.payload_len = len;
 
   // publish message
-  lwmqtt_err_t err = lwmqtt_publish(&esp_mqtt_client, topic, &message, esp_mqtt_command_timeout);
+  lwmqtt_err_t err = lwmqtt_publish(&esp_mqtt_client, lwmqtt_string(topic), message, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_publish: %d", err);
     ESP_MQTT_UNLOCK();

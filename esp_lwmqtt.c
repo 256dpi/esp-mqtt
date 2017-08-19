@@ -27,7 +27,7 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
   ip_addr_t addr;
   err_t err = netconn_gethostbyname_addrtype(host, &addr, NETCONN_DNS_IPV4);
   if (err != ERR_OK) {
-    return LWMQTT_NETWORK_CONNECT_ERROR;
+    return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // create new connection
@@ -36,7 +36,7 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
   // create new socket
   err = netconn_connect(network->conn, &addr, (u16_t)port);
   if (err != ERR_OK) {
-    return LWMQTT_NETWORK_CONNECT_ERROR;
+    return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   return LWMQTT_SUCCESS;
@@ -52,18 +52,18 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network) {
   netconn_delete(network->conn);
 }
 
-lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network_t *network, int *available) {
-  *available = network->conn->recv_avail;
+lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network_t *network, size_t *available) {
+  *available = (size_t)network->conn->recv_avail;
   return LWMQTT_SUCCESS;
 }
 
-lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, void *buffer, int len, int *read,
+lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, uint8_t *buffer, size_t len, size_t *read,
                                      int timeout) {
   // cast network reference
   esp_lwmqtt_network_t *network = (esp_lwmqtt_network_t *)ref;
 
   // prepare counter
-  int copied_len = 0;
+  size_t copied_len = 0;
 
   // check if some data is left
   if (network->rest_len > 0) {
@@ -103,11 +103,11 @@ lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, void *b
     *read += copied_len;
     return LWMQTT_SUCCESS;
   } else if (err != ERR_OK) {
-    return LWMQTT_NETWORK_READ_ERROR;
+    return LWMQTT_NETWORK_FAILED_READ;
   }
 
   // get length
-  int bytes = netbuf_len(buf);
+  size_t bytes = netbuf_len(buf);
 
   // copy data
   netbuf_copy(buf, buffer + copied_len, len - copied_len);
@@ -129,7 +129,7 @@ lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, void *b
   return LWMQTT_SUCCESS;
 }
 
-lwmqtt_err_t esp_lwmqtt_network_write(lwmqtt_client_t *client, void *ref, void *buffer, int len, int *sent,
+lwmqtt_err_t esp_lwmqtt_network_write(lwmqtt_client_t *client, void *ref, uint8_t *buffer, size_t len, size_t *sent,
                                       int timeout) {
   // cast network reference
   esp_lwmqtt_network_t *network = (esp_lwmqtt_network_t *)ref;
@@ -138,9 +138,9 @@ lwmqtt_err_t esp_lwmqtt_network_write(lwmqtt_client_t *client, void *ref, void *
   netconn_set_sendtimeout(network->conn, timeout);
 
   // send data
-  err_t err = netconn_write(network->conn, buffer, (size_t)len, NETCONN_COPY);
+  err_t err = netconn_write(network->conn, buffer, len, NETCONN_COPY);
   if (err != ERR_OK) {
-    return LWMQTT_NETWORK_WRITE_ERROR;
+    return LWMQTT_NETWORK_FAILED_WRITE;
   }
 
   // adjust counter

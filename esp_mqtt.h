@@ -17,7 +17,7 @@ typedef void (*esp_mqtt_status_callback_t)(esp_mqtt_status_t);
 /**
  * The message callback.
  */
-typedef void (*esp_mqtt_message_callback_t)(const char *topic, const char *payload, int len);
+typedef void (*esp_mqtt_message_callback_t)(const char *topic, uint8_t *payload, size_t len);
 
 /**
  * Initialize the MQTT management system.
@@ -29,7 +29,7 @@ typedef void (*esp_mqtt_message_callback_t)(const char *topic, const char *paylo
  * @param buffer_size - The read and write buffer size.
  * @param command_timeout - The command timeout.
  */
-void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, int buffer_size,
+void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, size_t buffer_size,
                    int command_timeout);
 
 /**
@@ -70,7 +70,7 @@ bool esp_mqtt_unsubscribe(const char *topic);
  * @param retained - The retained flag.
  * @return
  */
-bool esp_mqtt_publish(const char *topic, void *payload, int len, int qos, bool retained);
+bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, bool retained);
 
 /**
  * Stop the MQTT process.
