@@ -59,7 +59,7 @@ static void status_callback(esp_mqtt_status_t status) {
 }
 
 static void message_callback(const char *topic, uint8_t *payload, size_t len) {
-  printf("incoming: %s => %s\n", topic, payload);
+  printf("incoming: %s => %s (%d)\n", topic, payload, (int)len);
 }
 
 void app_main() {
