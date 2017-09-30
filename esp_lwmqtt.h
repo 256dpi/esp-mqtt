@@ -7,17 +7,17 @@
 /**
  * The lwmqtt timer object for the esp platform.
  */
-typedef struct { unsigned long deadline; } esp_lwmqtt_timer_t;
+typedef struct { uint32_t deadline; } esp_lwmqtt_timer_t;
 
 /**
  * The lwmqtt timer set callback for the esp platform.
  */
-void esp_lwmqtt_timer_set(lwmqtt_client_t *client, void *ref, int timeout);
+void esp_lwmqtt_timer_set(lwmqtt_client_t *client, void *ref, uint32_t timeout);
 
 /**
  * The lwmqtt timer get callback for the esp platform.
  */
-int esp_lwmqtt_timer_get(lwmqtt_client_t *client, void *ref);
+uint32_t esp_lwmqtt_timer_get(lwmqtt_client_t *client, void *ref);
 
 /**
  * The lwmqtt network object for the esp platform.
@@ -53,11 +53,11 @@ lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network
  * The lwmqtt network read callback for the esp platform.
  */
 lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, uint8_t *buf, size_t len, size_t *read,
-                                     int timeout);
+                                     uint32_t timeout);
 /**
  * The lwmqtt network write callback for the esp platform.
  */
 lwmqtt_err_t esp_lwmqtt_network_write(lwmqtt_client_t *client, void *ref, uint8_t *buf, size_t len, size_t *sent,
-                                      int timeout);
+                                      uint32_t timeout);
 
 #endif  // ESP_LWMQTT_H

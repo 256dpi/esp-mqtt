@@ -21,7 +21,7 @@ static SemaphoreHandle_t esp_mqtt_mutex = NULL;
 static TaskHandle_t esp_mqtt_task = NULL;
 
 static size_t esp_mqtt_buffer_size;
-static int esp_mqtt_command_timeout;
+static uint32_t esp_mqtt_command_timeout;
 
 static struct {
   char *host;
@@ -59,7 +59,7 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
   esp_mqtt_status_callback = scb;
   esp_mqtt_message_callback = mcb;
   esp_mqtt_buffer_size = buffer_size;
-  esp_mqtt_command_timeout = command_timeout;
+  esp_mqtt_command_timeout = (uint32_t)command_timeout;
 
   // allocate buffers
   esp_mqtt_write_buffer = malloc((size_t)buffer_size);
