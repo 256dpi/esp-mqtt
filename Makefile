@@ -6,6 +6,8 @@ ifeq ($(UNAME), Darwin)
 XTENSA_TOOLCHAIN := "xtensa-esp32-elf-osx-1.22.0-73-ge28a011-5.2.0.tar.gz"
 endif
 
+ESP_IDF_VERSION := "e6afe28bafe5db5ab79fae213f2e8e1ccd9f937c"
+
 fmt:
 	clang-format -i ./*.c ./*.h -style="{BasedOnStyle: Google, ColumnLimit: 120}"
 	clang-format -i ./test/main/*.c -style="{BasedOnStyle: Google, ColumnLimit: 120}"
@@ -16,7 +18,13 @@ test/xtensa-esp32-elf:
 	rm *.tar.gz
 
 test/esp-idf:
-	git clone --recursive --depth 1 https://github.com/espressif/esp-idf.git test/esp-idf
+	git clone --recursive  https://github.com/espressif/esp-idf.git test/esp-idf
+	cd test/esp-idf; git fetch; git checkout $(ESP_IDF_VERSION)
+	cd test/esp-idf/; git submodule update --recursive
+
+update:
+	cd test/esp-idf; git fetch; git checkout $(ESP_IDF_VERSION)
+	cd test/esp-idf/; git submodule update --recursive
 
 defconfig: test/xtensa-esp32-elf test/esp-idf
 	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make defconfig
