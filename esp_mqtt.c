@@ -39,7 +39,7 @@ static esp_mqtt_message_callback_t esp_mqtt_message_callback = NULL;
 
 static lwmqtt_client_t esp_mqtt_client;
 
-static esp_lwmqtt_network_t esp_mqtt_network = esp_lwmqtt_default_network;
+static esp_lwmqtt_network_t esp_mqtt_network = {0};
 
 static esp_lwmqtt_timer_t esp_mqtt_timer1, esp_mqtt_timer2;
 

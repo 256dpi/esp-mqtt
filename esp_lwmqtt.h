@@ -29,12 +29,6 @@ typedef struct {
 } esp_lwmqtt_network_t;
 
 /**
- * The initializer for the lwmqtt network object.
- */
-#define esp_lwmqtt_default_network \
-  { NULL, NULL, 0 }
-
-/**
  * Initiate a connection to the specified remote hose.
  */
 lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *host, int port);
