@@ -4,19 +4,19 @@
 
 #include "esp_lwmqtt.h"
 
-void esp_lwmqtt_timer_set(lwmqtt_client_t *client, void *ref, uint32_t timeout) {
+void esp_lwmqtt_timer_set(void *ref, uint32_t timeout) {
   // cast timer reference
   esp_lwmqtt_timer_t *t = (esp_lwmqtt_timer_t *)ref;
 
   // set deadline
-  t->deadline = (xTaskGetTickCount() / portTICK_PERIOD_MS) + timeout;
+  t->deadline = (xTaskGetTickCount() * portTICK_PERIOD_MS) + timeout;
 }
 
-uint32_t esp_lwmqtt_timer_get(lwmqtt_client_t *client, void *ref) {
+int32_t esp_lwmqtt_timer_get(void *ref) {
   // cast timer reference
   esp_lwmqtt_timer_t *t = (esp_lwmqtt_timer_t *)ref;
 
-  return t->deadline - (xTaskGetTickCount() / portTICK_PERIOD_MS);
+  return (int32_t)t->deadline - (int32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
 
 lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *host, int port) {
@@ -52,13 +52,12 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network) {
   netconn_delete(network->conn);
 }
 
-lwmqtt_err_t esp_lwmqtt_network_peek(lwmqtt_client_t *client, esp_lwmqtt_network_t *network, size_t *available) {
+lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *network, size_t *available) {
   *available = (size_t)network->conn->recv_avail;
   return LWMQTT_SUCCESS;
 }
 
-lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, uint8_t *buffer, size_t len, size_t *read,
-                                     uint32_t timeout) {
+lwmqtt_err_t esp_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len, size_t *read, uint32_t timeout) {
   // cast network reference
   esp_lwmqtt_network_t *network = (esp_lwmqtt_network_t *)ref;
 
@@ -129,8 +128,7 @@ lwmqtt_err_t esp_lwmqtt_network_read(lwmqtt_client_t *client, void *ref, uint8_t
   return LWMQTT_SUCCESS;
 }
 
-lwmqtt_err_t esp_lwmqtt_network_write(lwmqtt_client_t *client, void *ref, uint8_t *buffer, size_t len, size_t *sent,
-                                      uint32_t timeout) {
+lwmqtt_err_t esp_lwmqtt_network_write(void *ref, uint8_t *buffer, size_t len, size_t *sent, uint32_t timeout) {
   // cast network reference
   esp_lwmqtt_network_t *network = (esp_lwmqtt_network_t *)ref;
 
