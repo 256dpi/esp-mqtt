@@ -92,7 +92,7 @@ static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_
 
   // queue event
   if (xQueueSend(esp_mqtt_event_queue, &evt, 0) != pdTRUE) {
-    ESP_LOGI(ESP_MQTT_LOG_TAG, "xQueueSend: queue is full, dropping message");
+    ESP_LOGW(ESP_MQTT_LOG_TAG, "xQueueSend: queue is full, dropping message");
     free(evt->topic.data);
     free(evt->message.payload);
     free(evt);
@@ -162,7 +162,7 @@ static void esp_mqtt_process(void *p) {
     // make connection attempt
     if (esp_mqtt_process_connect()) {
       // log success
-      ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_process: attempt successful");
+      ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_process: connection attempt successful");
 
       // set local flag
       esp_mqtt_connected = true;
@@ -178,7 +178,7 @@ static void esp_mqtt_process(void *p) {
     ESP_MQTT_UNLOCK();
 
     // log fail
-    ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_process: attempt failed");
+    ESP_LOGW(ESP_MQTT_LOG_TAG, "esp_mqtt_process: connection attempt failed");
 
     // delay loop by 1s and yield to other processes
     vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -260,7 +260,7 @@ void esp_mqtt_start(const char *host, int port, const char *client_id, const cha
 
   // check if already running
   if (esp_mqtt_running) {
-    ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_mqtt_start: already running");
+    ESP_LOGW(ESP_MQTT_LOG_TAG, "esp_mqtt_start: already running");
     ESP_MQTT_UNLOCK();
     return;
   }
@@ -330,7 +330,7 @@ bool esp_mqtt_subscribe(const char *topic, int qos) {
 
   // check if still connected
   if (!esp_mqtt_connected) {
-    ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_subscribe: not connected");
+    ESP_LOGW(ESP_MQTT_LOG_TAG, "esp_mqtt_subscribe: not connected");
     ESP_MQTT_UNLOCK();
     return false;
   }
@@ -356,7 +356,7 @@ bool esp_mqtt_unsubscribe(const char *topic) {
 
   // check if still connected
   if (!esp_mqtt_connected) {
-    ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_unsubscribe: not connected");
+    ESP_LOGW(ESP_MQTT_LOG_TAG, "esp_mqtt_unsubscribe: not connected");
     ESP_MQTT_UNLOCK();
     return false;
   }
@@ -381,7 +381,7 @@ bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, 
 
   // check if still connected
   if (!esp_mqtt_connected) {
-    ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_publish: not connected");
+    ESP_LOGW(ESP_MQTT_LOG_TAG, "esp_mqtt_publish: not connected");
     ESP_MQTT_UNLOCK();
     return false;
   }
