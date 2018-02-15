@@ -1,12 +1,12 @@
 UNAME := $(shell uname)
 
-XTENSA_TOOLCHAIN := "xtensa-esp32-elf-linux64-1.22.0-73-ge28a011-5.2.0.tar.gz"
+XTENSA_TOOLCHAIN := "xtensa-esp32-elf-linux64-1.22.0-61-gab8375a-5.2.0.tar.gz"
 
 ifeq ($(UNAME), Darwin)
-XTENSA_TOOLCHAIN := "xtensa-esp32-elf-osx-1.22.0-73-ge28a011-5.2.0.tar.gz"
+XTENSA_TOOLCHAIN := "xtensa-esp32-elf-osx-1.22.0-61-gab8375a-5.2.0.tar.gz"
 endif
 
-ESP_IDF_VERSION := "e6afe28bafe5db5ab79fae213f2e8e1ccd9f937c"
+ESP_IDF_VERSION := "8bca703467be0d5e43e2a3dce2ca7727ca826474" # 2.1.1
 
 fmt:
 	clang-format -i ./*.c ./*.h -style="{BasedOnStyle: Google, ColumnLimit: 120}"
