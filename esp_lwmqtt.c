@@ -50,6 +50,11 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network) {
 
   // delete connection
   netconn_delete(network->conn);
+
+  // reset network
+  network->conn = NULL;
+  network->rest_buf = NULL;
+  network->rest_len = 0;
 }
 
 lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *network, size_t *available) {
