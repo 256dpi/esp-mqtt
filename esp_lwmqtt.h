@@ -7,7 +7,9 @@
 /**
  * The lwmqtt timer object for the esp platform.
  */
-typedef struct { uint32_t deadline; } esp_lwmqtt_timer_t;
+typedef struct {
+  uint32_t deadline;
+} esp_lwmqtt_timer_t;
 
 /**
  * The lwmqtt timer set callback for the esp platform.

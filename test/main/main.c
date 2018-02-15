@@ -16,10 +16,8 @@
 static TaskHandle_t task = NULL;
 
 static void process(void *p) {
-  static const char *payload = "world";
-
   for (;;) {
-    esp_mqtt_publish("hello", (void *)payload, (int)strlen(payload), 0, false);
+    esp_mqtt_publish("hello", (uint8_t *)"world", 5, 0, false);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 }
@@ -74,7 +72,8 @@ void app_main() {
   wifi_config_t wifi_config = {
       .sta =
           {
-              .ssid = WIFI_SSID, .password = WIFI_PASS,
+              .ssid = WIFI_SSID,
+              .password = WIFI_PASS,
           },
   };
 
