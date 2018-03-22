@@ -1,6 +1,8 @@
 #include <lwip/api.h>
 
-// Some docs about netconn: http://www.ecoscentric.com/ecospro/doc/html/ref/lwip-api-sequential-reference.html.
+// Some docs about lwip:
+// http://www.ecoscentric.com/ecospro/doc/html/ref/lwip-api-sequential-reference.html.
+// http://ww1.microchip.com/downloads/en/AppNotes/Atmel-42233-Using-the-lwIP-Network-Stack_AP-Note_AT04055.pdf
 
 #include "esp_lwmqtt.h"
 
