@@ -191,20 +191,20 @@ static void esp_mqtt_process(void *p) {
 
   // yield loop
   for (;;) {
-    // acquire mutex
-    ESP_MQTT_LOCK();
-
-    // get the available bytes to be read
-    size_t available = 0;
-    lwmqtt_err_t err = esp_lwmqtt_network_peek(&esp_mqtt_network, &available);
+    // block until data is available (max 2s)
+    bool available = false;
+    lwmqtt_err_t err = esp_lwmqtt_network_select(&esp_mqtt_network, &available, 2000);
     if (err != LWMQTT_SUCCESS) {
-      ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_peek: %d", err);
+      ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_select: %d", err);
       break;
     }
 
+    // acquire mutex
+    ESP_MQTT_LOCK();
+
     // yield to client if data is available
-    if (available > 0) {
-      err = lwmqtt_yield(&esp_mqtt_client, available, esp_mqtt_command_timeout);
+    if (available) {
+      err = lwmqtt_yield(&esp_mqtt_client, 0, esp_mqtt_command_timeout);
       if (err != LWMQTT_SUCCESS) {
         ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_yield: %d", err);
         break;
@@ -223,9 +223,6 @@ static void esp_mqtt_process(void *p) {
 
     // dispatch queued events
     esp_mqtt_dispatch_events();
-
-    // yield to other processes
-    vTaskDelay(1);
   }
 
   // mutex has already been acquired above
