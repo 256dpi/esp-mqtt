@@ -51,7 +51,7 @@ static void status_callback(esp_mqtt_status_t status) {
   switch (status) {
     case ESP_MQTT_STATUS_CONNECTED:
       esp_mqtt_subscribe("hello", 0);
-      xTaskCreatePinnedToCore(process, "process", 1024, NULL, 10, &task, 1);
+      xTaskCreatePinnedToCore(process, "process", 2048, NULL, 10, &task, 1);
       break;
     case ESP_MQTT_STATUS_DISCONNECTED:
       vTaskDelete(task);

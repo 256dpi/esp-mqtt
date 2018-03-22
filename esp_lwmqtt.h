@@ -25,9 +25,7 @@ int32_t esp_lwmqtt_timer_get(void *ref);
  * The lwmqtt network object for the esp platform.
  */
 typedef struct {
-  struct netconn *conn;
-  struct netbuf *rest_buf;
-  size_t rest_len;
+  int socket;
 } esp_lwmqtt_network_t;
 
 /**
