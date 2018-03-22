@@ -30,7 +30,7 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
 When the WiFi connection has been established, start the process:
 
 ```c++
-void esp_mqtt_start(const char *host, int port, const char *client_id,
+void esp_mqtt_start(const char *host, const char * port, const char *client_id,
                     const char *username, const char *password);
 ```
 
