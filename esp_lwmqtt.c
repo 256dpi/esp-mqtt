@@ -66,6 +66,25 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network) {
   }
 }
 
+lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *available, uint32_t timeout) {
+  // prepare set
+  fd_set set;
+  FD_ZERO(&set);
+  FD_SET(network->socket, &set);
+
+  // wait for data
+  struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
+  int result = select(network->socket + 1, &set, NULL, NULL, &t);
+  if (result < 0) {
+    return LWMQTT_NETWORK_FAILED_READ;
+  }
+
+  // set whether data is available
+  *available = result > 0;
+
+  return LWMQTT_SUCCESS;
+}
+
 lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *network, size_t *available) {
   // get the available bytes on the socket
   int rc = ioctl(network->socket, FIONREAD, available);

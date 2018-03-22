@@ -44,6 +44,11 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network);
 lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *network, size_t *available);
 
 /**
+ * Function to wait for a socket until data is available or the timeout has been reached.
+ */
+lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *available, uint32_t timeout);
+
+/**
  * The lwmqtt network read callback for the esp platform.
  */
 lwmqtt_err_t esp_lwmqtt_network_read(void *ref, uint8_t *buf, size_t len, size_t *read, uint32_t timeout);
