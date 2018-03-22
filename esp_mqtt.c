@@ -191,9 +191,6 @@ static void esp_mqtt_process(void *p) {
 
   // yield loop
   for (;;) {
-    // dispatch queued events
-    esp_mqtt_dispatch_events();
-
     // acquire mutex
     ESP_MQTT_LOCK();
 
@@ -347,6 +344,9 @@ bool esp_mqtt_subscribe(const char *topic, int qos) {
   // release mutex
   ESP_MQTT_UNLOCK();
 
+  // dispatch queued events
+  esp_mqtt_dispatch_events();
+
   return true;
 }
 
@@ -371,6 +371,9 @@ bool esp_mqtt_unsubscribe(const char *topic) {
 
   // release mutex
   ESP_MQTT_UNLOCK();
+
+  // dispatch queued events
+  esp_mqtt_dispatch_events();
 
   return true;
 }
@@ -403,6 +406,9 @@ bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, 
 
   // release mutex
   ESP_MQTT_UNLOCK();
+
+  // dispatch queued events
+  esp_mqtt_dispatch_events();
 
   return true;
 }
