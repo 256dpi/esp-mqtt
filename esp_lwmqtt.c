@@ -21,7 +21,7 @@ int32_t esp_lwmqtt_timer_get(void *ref) {
   return (int32_t)t->deadline - (int32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
 
-lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *host, int port) {
+lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *host, char *port) {
   // disconnect if not already the case
   esp_lwmqtt_network_disconnect(network);
 
@@ -29,9 +29,8 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
   struct addrinfo hints = {.ai_family = AF_INET, .ai_socktype = SOCK_STREAM};
 
   // lookup ip address
-  char buf[33];
   struct addrinfo *res;
-  int r = getaddrinfo(host, itoa(port, buf, 10), &hints, &res);
+  int r = getaddrinfo(host, port, &hints, &res);
   if (r != 0 || res == NULL) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
@@ -46,7 +45,6 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
   // connect socket
   r = connect(network->socket, res->ai_addr, res->ai_addrlen);
   if (r < 0) {
-    printf("... socket connect failed errno=%d\n", errno);
     close(network->socket);
     freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;

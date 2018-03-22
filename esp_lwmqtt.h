@@ -1,7 +1,6 @@
 #ifndef ESP_LWMQTT_H
 #define ESP_LWMQTT_H
 
-#include <lwip/api.h>
 #include <lwmqtt.h>
 
 /**
@@ -31,7 +30,7 @@ typedef struct {
 /**
  * Initiate a connection to the specified remote hose.
  */
-lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *host, int port);
+lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *host, char *port);
 
 /**
  * Terminate the connection.
@@ -44,7 +43,7 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network);
 lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *network, size_t *available);
 
 /**
- * Function to wait for a socket until data is available or the timeout has been reached.
+ * Will wait for a socket until data is available or the timeout has been reached.
  */
 lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *available, uint32_t timeout);
 
@@ -52,6 +51,7 @@ lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *avai
  * The lwmqtt network read callback for the esp platform.
  */
 lwmqtt_err_t esp_lwmqtt_network_read(void *ref, uint8_t *buf, size_t len, size_t *read, uint32_t timeout);
+
 /**
  * The lwmqtt network write callback for the esp platform.
  */

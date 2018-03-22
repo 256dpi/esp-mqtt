@@ -25,11 +25,11 @@ static uint32_t esp_mqtt_command_timeout;
 
 static struct {
   char *host;
-  int port;
+  char *port;
   char *client_id;
   char *username;
   char *password;
-} esp_mqtt_config = {.host = NULL, .port = 1883, .client_id = NULL, .username = NULL, .password = NULL};
+} esp_mqtt_config = {.host = NULL, .port = NULL, .client_id = NULL, .username = NULL, .password = NULL};
 
 static bool esp_mqtt_running = false;
 static bool esp_mqtt_connected = false;
@@ -248,7 +248,8 @@ static void esp_mqtt_process(void *p) {
   vTaskDelete(NULL);
 }
 
-void esp_mqtt_start(const char *host, int port, const char *client_id, const char *username, const char *password) {
+void esp_mqtt_start(const char *host, const char *port, const char *client_id, const char *username,
+                    const char *password) {
   // acquire mutex
   ESP_MQTT_LOCK();
 
@@ -263,6 +264,12 @@ void esp_mqtt_start(const char *host, int port, const char *client_id, const cha
   if (esp_mqtt_config.host != NULL) {
     free(esp_mqtt_config.host);
     esp_mqtt_config.host = NULL;
+  }
+
+  // free port if set
+  if (esp_mqtt_config.port != NULL) {
+    free(esp_mqtt_config.port);
+    esp_mqtt_config.port = NULL;
   }
 
   // free client id if set
@@ -288,8 +295,10 @@ void esp_mqtt_start(const char *host, int port, const char *client_id, const cha
     esp_mqtt_config.host = strdup(host);
   }
 
-  // set port
-  esp_mqtt_config.port = port;
+  // set port if provided
+  if (port != NULL) {
+    esp_mqtt_config.port = strdup(port);
+  }
 
   // set client id if provided
   if (client_id != NULL) {

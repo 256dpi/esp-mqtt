@@ -41,7 +41,8 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
  * @param username - The client username.
  * @param password - The client password.
  */
-void esp_mqtt_start(const char *host, int port, const char *client_id, const char *username, const char *password);
+void esp_mqtt_start(const char *host, const char *port, const char *client_id, const char *username,
+                    const char *password);
 
 /**
  * Subscribe to specified topic.
