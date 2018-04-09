@@ -159,7 +159,7 @@ static bool esp_mqtt_process_connect() {
   // last will data
   lwmqtt_will_t will;
   will.topic = lwmqtt_string(esp_mqtt_lwt_config.topic);
-  will.qos = esp_mqtt_lwt_config.qos;
+  will.qos = (lwmqtt_qos_t)esp_mqtt_lwt_config.qos;
   will.retained = esp_mqtt_lwt_config.retained;
   will.payload = lwmqtt_string(esp_mqtt_lwt_config.payload);
 
