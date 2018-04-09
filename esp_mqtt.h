@@ -33,6 +33,18 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
                    int command_timeout);
 
 /**
+ * Configure Last Will and Testament.
+ *
+ * Note: Must be called before esp_mqtt_start.
+ *
+ * @param topic - The LWT topic.
+ * @param payload - The LWT payload.
+ * @param qos - The LWT QoS level.
+ * @param retained - The LWT retained flag.
+ */
+void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained);
+
+/**
  * Start the MQTT process.
  *
  * @param host - The broker host.

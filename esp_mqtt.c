@@ -40,6 +40,13 @@ static struct {
   char *password;
 } esp_mqtt_config = {.host = NULL, .port = NULL, .client_id = NULL, .username = NULL, .password = NULL};
 
+static struct {
+  char *topic;
+  char *payload;
+  int qos;
+  bool retained;
+} esp_mqtt_lwt_config = {.topic = NULL, .payload = NULL, .qos = 0, .retained = false};
+
 static bool esp_mqtt_running = false;
 static bool esp_mqtt_connected = false;
 
@@ -149,9 +156,16 @@ static bool esp_mqtt_process_connect() {
   options.username = lwmqtt_string(esp_mqtt_config.username);
   options.password = lwmqtt_string(esp_mqtt_config.password);
 
+  // last will data
+  lwmqtt_will_t will;
+  will.topic = lwmqtt_string(esp_mqtt_lwt_config.topic);
+  will.qos = esp_mqtt_lwt_config.qos;
+  will.retained = esp_mqtt_lwt_config.retained;
+  will.payload = lwmqtt_string(esp_mqtt_lwt_config.payload);
+
   // attempt connection
   lwmqtt_return_code_t return_code;
-  err = lwmqtt_connect(&esp_mqtt_client, options, NULL, &return_code, esp_mqtt_command_timeout);
+  err = lwmqtt_connect(&esp_mqtt_client, options, will.topic.len ? &will : NULL, &return_code, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_connect: %d", err);
     return false;
@@ -262,6 +276,42 @@ static void esp_mqtt_process(void *p) {
 
   // delete task
   vTaskDelete(NULL);
+}
+
+void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained) {
+  // acquire mutex
+  ESP_MQTT_LOCK();
+
+  // free topic if set
+  if (esp_mqtt_lwt_config.topic != NULL) {
+    free(esp_mqtt_lwt_config.topic);
+    esp_mqtt_lwt_config.topic = NULL;
+  }
+
+  // free payload if set
+  if (esp_mqtt_lwt_config.payload != NULL) {
+    free(esp_mqtt_lwt_config.payload);
+    esp_mqtt_lwt_config.payload = NULL;
+  }
+
+  // set topic if provided
+  if (topic != NULL) {
+    esp_mqtt_lwt_config.topic = strdup(topic);
+  }
+
+  // set payload if provided
+  if (payload != NULL) {
+    esp_mqtt_lwt_config.payload = strdup(payload);
+  }
+
+  // set qos
+  esp_mqtt_lwt_config.qos = qos;
+
+  // set retained
+  esp_mqtt_lwt_config.retained = retained;
+
+  // release mutex
+  ESP_MQTT_UNLOCK();
 }
 
 void esp_mqtt_start(const char *host, const char *port, const char *client_id, const char *username,

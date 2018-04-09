@@ -27,10 +27,16 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
                    size_t buffer_size, int command_timeout);
 ```
 
+Optionally, configure a Last Will and Testament (a topic to be published by the broker in the event of an ungraceful disconnection):
+
+```c++
+void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained);
+```
+
 When the WiFi connection has been established, start the process:
 
 ```c++
-void esp_mqtt_start(const char *host, int port, const char *client_id,
+void esp_mqtt_start(const char *host, const char *port, const char *client_id,
                     const char *username, const char *password);
 ```
 
