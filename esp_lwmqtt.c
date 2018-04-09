@@ -30,28 +30,28 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
 
   // lookup ip address
   struct addrinfo *res;
-  int r = getaddrinfo(host, port, &hints, &res);
+  int r = lwip_getaddrinfo(host, port, &hints, &res);
   if (r != 0 || res == NULL) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // create socket
-  network->socket = socket(res->ai_family, res->ai_socktype, 0);
+  network->socket = lwip_socket(res->ai_family, res->ai_socktype, 0);
   if (network->socket < 0) {
-    freeaddrinfo(res);
+    lwip_freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // connect socket
-  r = connect(network->socket, res->ai_addr, res->ai_addrlen);
+  r = lwip_connect_r(network->socket, res->ai_addr, res->ai_addrlen);
   if (r < 0) {
-    close(network->socket);
-    freeaddrinfo(res);
+    lwip_close_r(network->socket);
+    lwip_freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // free address
-  freeaddrinfo(res);
+  lwip_freeaddrinfo(res);
 
   return LWMQTT_SUCCESS;
 }
@@ -59,7 +59,7 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
 void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network) {
   // close socket if present
   if (network->socket) {
-    close(network->socket);
+    lwip_close_r(network->socket);
     network->socket = 0;
   }
 }
@@ -72,7 +72,7 @@ lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *avai
 
   // wait for data
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int result = select(network->socket + 1, &set, NULL, NULL, &t);
+  int result = lwip_select(network->socket + 1, &set, NULL, NULL, &t);
   if (result < 0) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
@@ -85,7 +85,7 @@ lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *avai
 
 lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *network, size_t *available) {
   // get the available bytes on the socket
-  int rc = ioctl(network->socket, FIONREAD, available);
+  int rc = lwip_ioctl_r(network->socket, FIONREAD, available);
   if (rc < 0) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
@@ -99,13 +99,13 @@ lwmqtt_err_t esp_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len, siz
 
   // set timeout
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int rc = setsockopt(n->socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&t, sizeof(t));
+  int rc = lwip_setsockopt_r(n->socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&t, sizeof(t));
   if (rc < 0) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
   // read from socket
-  int bytes = recv(n->socket, buffer, len, 0);
+  int bytes = lwip_recv_r(n->socket, buffer, len, 0);
   if (bytes < 0 && errno != EAGAIN) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
@@ -122,13 +122,13 @@ lwmqtt_err_t esp_lwmqtt_network_write(void *ref, uint8_t *buffer, size_t len, si
 
   // set timeout
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int rc = setsockopt(n->socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&t, sizeof(t));
+  int rc = lwip_setsockopt_r(n->socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&t, sizeof(t));
   if (rc < 0) {
     return LWMQTT_NETWORK_FAILED_WRITE;
   }
 
   // write to socket
-  int bytes = (int)send(n->socket, buffer, len, 0);
+  int bytes = lwip_send_r(n->socket, buffer, len, 0);
   if (bytes < 0 && errno != EAGAIN) {
     return LWMQTT_NETWORK_FAILED_WRITE;
   }
