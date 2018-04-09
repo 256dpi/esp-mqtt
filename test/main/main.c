@@ -9,9 +9,9 @@
 #define WIFI_PASS "pass"
 
 #define MQTT_HOST "broker.shiftr.io"
-#define MQTT_PORT 1883
 #define MQTT_USER "try"
 #define MQTT_PASS "try"
+#define MQTT_PORT "1883"
 
 static TaskHandle_t task = NULL;
 
