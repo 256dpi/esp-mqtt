@@ -13,14 +13,9 @@
 #define MQTT_PASS "try"
 #define MQTT_PORT "1883"
 
-static TaskHandle_t task = NULL;
-
 static void process(void *p) {
   for (;;) {
-    if (!esp_mqtt_publish("hello", (uint8_t *)"world", 5, 0, false)) {
-      ESP_ERROR_CHECK(ESP_FAIL);
-    }
-
+    esp_mqtt_publish("hello", (uint8_t *)"world", 5, 0, false);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 }
@@ -51,10 +46,8 @@ static void status_callback(esp_mqtt_status_t status) {
   switch (status) {
     case ESP_MQTT_STATUS_CONNECTED:
       esp_mqtt_subscribe("hello", 0);
-      xTaskCreatePinnedToCore(process, "process", 2048, NULL, 10, &task, 1);
       break;
     case ESP_MQTT_STATUS_DISCONNECTED:
-      vTaskDelete(task);
       break;
   }
 }
@@ -85,4 +78,6 @@ void app_main() {
   ESP_ERROR_CHECK(esp_wifi_start());
 
   esp_mqtt_init(status_callback, message_callback, 256, 2000);
+
+  xTaskCreatePinnedToCore(process, "process", 2048, NULL, 10, NULL, 1);
 }
