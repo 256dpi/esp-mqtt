@@ -51,4 +51,7 @@ monitor: test/xtensa-esp32-elf test/esp-idf
 idf-monitor: test/xtensa-esp32-elf test/esp-idf test/components/esp-mqtt
 	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make monitor
 
-run: erase build flash monitor
+debug:
+	 export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; export IDF_PATH=$(shell pwd)/test/esp-idf; ./test/esp-idf/components/espcoredump/espcoredump.py info_corefile -t b64 -c ./test/dump.txt ./test/build/esp-mqtt.elf
+
+run: build flash monitor
