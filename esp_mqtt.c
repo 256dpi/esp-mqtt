@@ -165,7 +165,8 @@ static bool esp_mqtt_process_connect() {
 
   // attempt connection
   lwmqtt_return_code_t return_code;
-  err = lwmqtt_connect(&esp_mqtt_client, options, will.topic.len ? &will : NULL, &return_code, esp_mqtt_command_timeout);
+  err =
+      lwmqtt_connect(&esp_mqtt_client, options, will.topic.len ? &will : NULL, &return_code, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_connect: %d", err);
     return false;
@@ -280,7 +281,7 @@ static void esp_mqtt_process(void *p) {
 
 void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained) {
   // acquire mutex
-  ESP_MQTT_LOCK();
+  ESP_MQTT_LOCK_MAIN();
 
   // free topic if set
   if (esp_mqtt_lwt_config.topic != NULL) {
@@ -311,7 +312,7 @@ void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained
   esp_mqtt_lwt_config.retained = retained;
 
   // release mutex
-  ESP_MQTT_UNLOCK();
+  ESP_MQTT_UNLOCK_MAIN();
 }
 
 void esp_mqtt_start(const char *host, const char *port, const char *client_id, const char *username,
