@@ -224,6 +224,7 @@ static void esp_mqtt_process(void *p) {
     lwmqtt_err_t err = esp_lwmqtt_network_select(&esp_mqtt_network, &available, 2000);
     if (err != LWMQTT_SUCCESS) {
       ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_select: %d", err);
+      ESP_MQTT_UNLOCK_SELECT();
       break;
     }
 
@@ -238,6 +239,7 @@ static void esp_mqtt_process(void *p) {
       err = lwmqtt_yield(&esp_mqtt_client, 0, esp_mqtt_command_timeout);
       if (err != LWMQTT_SUCCESS) {
         ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_yield: %d", err);
+        ESP_MQTT_UNLOCK_MAIN();
         break;
       }
     }
@@ -246,6 +248,7 @@ static void esp_mqtt_process(void *p) {
     err = lwmqtt_keep_alive(&esp_mqtt_client, esp_mqtt_command_timeout);
     if (err != LWMQTT_SUCCESS) {
       ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_keep_alive: %d", err);
+      ESP_MQTT_UNLOCK_MAIN();
       break;
     }
 
@@ -256,7 +259,8 @@ static void esp_mqtt_process(void *p) {
     esp_mqtt_dispatch_events();
   }
 
-  // mutex has already been acquired above
+  // acquire mutex
+  ESP_MQTT_LOCK_MAIN();
 
   // disconnect network
   esp_lwmqtt_network_disconnect(&esp_mqtt_network);
