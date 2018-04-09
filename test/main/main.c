@@ -20,6 +20,14 @@ static void process(void *p) {
   }
 }
 
+static void restart(void *_) {
+  for (;;) {
+    vTaskDelay(10000 / portTICK_PERIOD_MS);
+    esp_mqtt_stop();
+    esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS);
+  }
+}
+
 static esp_err_t event_handler(void *ctx, system_event_t *event) {
   switch (event->event_id) {
     case SYSTEM_EVENT_STA_START:
@@ -80,4 +88,5 @@ void app_main() {
   esp_mqtt_init(status_callback, message_callback, 256, 2000);
 
   xTaskCreatePinnedToCore(process, "process", 2048, NULL, 10, NULL, 1);
+  xTaskCreatePinnedToCore(restart, "restart", 2048, NULL, 10, NULL, 1);
 }
