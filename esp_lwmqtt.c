@@ -105,7 +105,7 @@ lwmqtt_err_t esp_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len, siz
   }
 
   // read from socket
-  int bytes = lwip_recv_r(n->socket, buffer, len, 0);
+  int bytes = lwip_read_r(n->socket, buffer, len);
   if (bytes < 0 && errno != EAGAIN) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
@@ -128,7 +128,7 @@ lwmqtt_err_t esp_lwmqtt_network_write(void *ref, uint8_t *buffer, size_t len, si
   }
 
   // write to socket
-  int bytes = lwip_send_r(n->socket, buffer, len, 0);
+  int bytes = lwip_write_r(n->socket, buffer, len);
   if (bytes < 0 && errno != EAGAIN) {
     return LWMQTT_NETWORK_FAILED_WRITE;
   }
