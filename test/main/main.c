@@ -15,7 +15,7 @@
 
 static void process(void *p) {
   for (;;) {
-    esp_mqtt_publish("hello", (uint8_t *)"world", 5, 0, false);
+    esp_mqtt_publish("/hello", (uint8_t *)"world", 5, 0, false);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 }
@@ -53,7 +53,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 static void status_callback(esp_mqtt_status_t status) {
   switch (status) {
     case ESP_MQTT_STATUS_CONNECTED:
-      esp_mqtt_subscribe("hello", 0);
+      esp_mqtt_subscribe("/hello", 0);
       break;
     case ESP_MQTT_STATUS_DISCONNECTED:
       break;
