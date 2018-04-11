@@ -53,6 +53,14 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
   // free address
   lwip_freeaddrinfo(res);
 
+  // disable nagle's algorithm
+  int flag = 1;
+  r = lwip_setsockopt_r(network->socket, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(int));
+  if (r < 0) {
+    lwip_close_r(network->socket);
+    return LWMQTT_NETWORK_FAILED_CONNECT;
+  }
+
   return LWMQTT_SUCCESS;
 }
 
