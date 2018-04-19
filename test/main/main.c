@@ -65,6 +65,8 @@ static void status_callback(esp_mqtt_status_t status) {
       esp_mqtt_subscribe("/hello", 0);
       break;
     case ESP_MQTT_STATUS_DISCONNECTED:
+      // reconnect
+      esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS);
       break;
   }
 }
