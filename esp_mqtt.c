@@ -225,9 +225,9 @@ static void esp_mqtt_process(void *p) {
     // acquire select mutex
     ESP_MQTT_LOCK_SELECT();
 
-    // block until data is available (max 1s)
+    // block until data is available
     bool available = false;
-    lwmqtt_err_t err = esp_lwmqtt_network_select(&esp_mqtt_network, &available, 1000);
+    lwmqtt_err_t err = esp_lwmqtt_network_select(&esp_mqtt_network, &available, esp_mqtt_command_timeout);
     if (err != LWMQTT_SUCCESS) {
       ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_select: %d", err);
       ESP_MQTT_UNLOCK_SELECT();
