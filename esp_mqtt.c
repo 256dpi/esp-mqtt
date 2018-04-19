@@ -49,6 +49,7 @@ static struct {
 
 static bool esp_mqtt_running = false;
 static bool esp_mqtt_connected = false;
+static bool esp_mqtt_error = false;
 
 static esp_mqtt_status_callback_t esp_mqtt_status_callback = NULL;
 static esp_mqtt_message_callback_t esp_mqtt_message_callback = NULL;
@@ -216,6 +217,11 @@ static void esp_mqtt_process(void *p) {
 
   // yield loop
   for (;;) {
+    // check for error
+    if (esp_mqtt_error) {
+      break;
+    }
+
     // acquire select mutex
     ESP_MQTT_LOCK_SELECT();
 
@@ -268,6 +274,7 @@ static void esp_mqtt_process(void *p) {
   // set local flags
   esp_mqtt_connected = false;
   esp_mqtt_running = false;
+  esp_mqtt_error = false;
 
   // release mutex
   ESP_MQTT_UNLOCK_MAIN();
@@ -413,6 +420,7 @@ bool esp_mqtt_subscribe(const char *topic, int qos) {
   lwmqtt_err_t err =
       lwmqtt_subscribe_one(&esp_mqtt_client, lwmqtt_string(topic), (lwmqtt_qos_t)qos, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
+    esp_mqtt_error = true;
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_subscribe_one: %d", err);
     ESP_MQTT_UNLOCK_MAIN();
     return false;
@@ -441,6 +449,7 @@ bool esp_mqtt_unsubscribe(const char *topic) {
   // unsubscribe from topic
   lwmqtt_err_t err = lwmqtt_unsubscribe_one(&esp_mqtt_client, lwmqtt_string(topic), esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
+    esp_mqtt_error = true;
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_unsubscribe_one: %d", err);
     ESP_MQTT_UNLOCK_MAIN();
     return false;
@@ -476,6 +485,7 @@ bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, 
   // publish message
   lwmqtt_err_t err = lwmqtt_publish(&esp_mqtt_client, lwmqtt_string(topic), message, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
+    esp_mqtt_error = true;
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_publish: %d", err);
     ESP_MQTT_UNLOCK_MAIN();
     return false;
