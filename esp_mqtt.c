@@ -110,7 +110,7 @@ static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_
 
   // queue event
   if (xQueueSend(esp_mqtt_event_queue, &evt, 0) != pdTRUE) {
-    ESP_LOGW(ESP_MQTT_LOG_TAG, "xQueueSend: queue is full, dropping message");
+    ESP_LOGE(ESP_MQTT_LOG_TAG, "xQueueSend: queue is full, dropping message");
     free(evt->topic.data);
     free(evt->message.payload);
     free(evt);
