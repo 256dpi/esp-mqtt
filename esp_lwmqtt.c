@@ -1,4 +1,5 @@
 #include <lwip/netdb.h>
+#include <string.h>  // needed
 
 // Some docs about lwip:
 // http://www.ecoscentric.com/ecospro/doc/html/ref/lwip-api-sequential-reference.html.
