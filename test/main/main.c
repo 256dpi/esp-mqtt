@@ -1,7 +1,7 @@
 #include <stdlib.h>
-#include <string.h>
 
 #include <esp_event_loop.h>
+#include <esp_log.h>
 #include <esp_mqtt.h>
 #include <esp_wifi.h>
 #include <nvs_flash.h>
@@ -72,7 +72,7 @@ static void status_callback(esp_mqtt_status_t status) {
 }
 
 static void message_callback(const char *topic, uint8_t *payload, size_t len) {
-  printf("incoming: %s => %s (%d)\n", topic, payload, (int)len);
+  ESP_LOGI("test", "incoming: %s => %s (%d)", topic, payload, (int)len);
 }
 
 void app_main() {
