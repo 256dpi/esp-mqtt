@@ -507,6 +507,7 @@ void esp_mqtt_stop() {
 
   // return immediately if not running anymore
   if (!esp_mqtt_running) {
+    ESP_MQTT_UNLOCK_SELECT();
     ESP_MQTT_UNLOCK_MAIN();
     return;
   }
