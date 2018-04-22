@@ -240,13 +240,26 @@ static void esp_mqtt_process(void *p) {
     // acquire mutex
     ESP_MQTT_LOCK_MAIN();
 
-    // yield to client if data is available
+    // process data if available
     if (available) {
-      err = lwmqtt_yield(&esp_mqtt_client, 0, esp_mqtt_command_timeout);
+      // get available bytes
+      size_t available_bytes = 0;
+      err = esp_lwmqtt_network_peek(&esp_mqtt_network, &available_bytes);
       if (err != LWMQTT_SUCCESS) {
-        ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_yield: %d", err);
+        ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_peek: %d", err);
         ESP_MQTT_UNLOCK_MAIN();
         break;
+      }
+
+      // yield client only if there is still data to read since select might unblock because of incoming ack packets
+      // that are already handled until we get to this point
+      if (available_bytes > 0) {
+        err = lwmqtt_yield(&esp_mqtt_client, available_bytes, esp_mqtt_command_timeout);
+        if (err != LWMQTT_SUCCESS) {
+          ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_yield: %d", err);
+          ESP_MQTT_UNLOCK_MAIN();
+          break;
+        }
       }
     }
 
