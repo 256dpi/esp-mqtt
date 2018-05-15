@@ -16,7 +16,11 @@ git submodule add https://github.com/256dpi/esp-mqtt.git components/esp-mqtt
 git submodule update --init --recursive
 ```
 
-The component will automatically enable the LWIP receive buffers. 
+The component will automatically enable the LWIP receive buffers.
+
+### PlatformIO
+
+You need to set `CONFIG_LWIP_SO_RCVBUF=y` manually in `sdkconfig`.
 
 ## API
 
