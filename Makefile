@@ -6,7 +6,7 @@ ifeq ($(UNAME), Darwin)
 XTENSA_TOOLCHAIN := "xtensa-esp32-elf-osx-1.22.0-80-g6c4433a-5.2.0.tar.gz"
 endif
 
-ESP_IDF_VERSION := "v3.0"
+ESP_IDF_VERSION := "v3.0.1"
 
 fmt:
 	clang-format -i ./*.c ./*.h -style="{BasedOnStyle: Google, ColumnLimit: 120}"
