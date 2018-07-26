@@ -143,10 +143,23 @@ static bool esp_mqtt_process_connect() {
   lwmqtt_set_timers(&esp_mqtt_client, &esp_mqtt_timer1, &esp_mqtt_timer2, esp_lwmqtt_timer_set, esp_lwmqtt_timer_get);
   lwmqtt_set_callback(&esp_mqtt_client, NULL, esp_mqtt_message_handler);
 
-  // attempt network connection
+  // initiate network connection
   lwmqtt_err_t err = esp_lwmqtt_network_connect(&esp_mqtt_network, esp_mqtt_config.host, esp_mqtt_config.port);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_connect: %d", err);
+    return false;
+  }
+
+  // wait for connection
+  bool connected = false;
+  err = esp_lwmqtt_network_wait(&esp_mqtt_network, &connected, esp_mqtt_command_timeout);
+  if (err != LWMQTT_SUCCESS) {
+    ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_wait: %d", err);
+    return false;
+  }
+
+  // return if not connected
+  if (!connected) {
     return false;
   }
 

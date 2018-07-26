@@ -29,7 +29,7 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
   // prepare hints
   struct addrinfo hints = {.ai_family = AF_INET, .ai_socktype = SOCK_STREAM};
 
-  // lookup ip address
+  // lookup ip address (there is no way to configure a timeout)
   struct addrinfo *res;
   int r = lwip_getaddrinfo(host, port, &hints, &res);
   if (r != 0 || res == NULL) {
@@ -43,9 +43,26 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
+  // disable nagle's algorithm
+  int flag = 1;
+  r = lwip_setsockopt_r(network->socket, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(int));
+  if (r < 0) {
+    lwip_close_r(network->socket);
+    return LWMQTT_NETWORK_FAILED_CONNECT;
+  }
+
+  // set socket to non-blocking
+  int flags = lwip_fcntl_r(network->socket, F_GETFL, 0);
+  r = lwip_fcntl_r(network->socket, F_SETFL, flags | O_NONBLOCK);
+  if (r < 0) {
+    lwip_close_r(network->socket);
+    lwip_freeaddrinfo(res);
+    return LWMQTT_NETWORK_FAILED_CONNECT;
+  }
+
   // connect socket
   r = lwip_connect_r(network->socket, res->ai_addr, res->ai_addrlen);
-  if (r < 0) {
+  if (r < 0 && errno != EINPROGRESS) {
     lwip_close_r(network->socket);
     lwip_freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;
@@ -54,9 +71,29 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
   // free address
   lwip_freeaddrinfo(res);
 
-  // disable nagle's algorithm
-  int flag = 1;
-  r = lwip_setsockopt_r(network->socket, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(int));
+  return LWMQTT_SUCCESS;
+}
+
+lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *network, bool *connected, uint32_t timeout) {
+  // prepare set
+  fd_set set;
+  FD_ZERO(&set);
+  FD_SET(network->socket, &set);
+
+  // wait for data
+  struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
+  int result = lwip_select(network->socket + 1, NULL, &set, NULL, &t);
+  if (result < 0) {
+    lwip_close_r(network->socket);
+    return LWMQTT_NETWORK_FAILED_CONNECT;
+  }
+
+  // set whether socket is connected
+  *connected = result > 0;
+
+  // set socket to blocking
+  int flags = lwip_fcntl_r(network->socket, F_GETFL, 0);
+  int r = lwip_fcntl_r(network->socket, F_SETFL, flags & (~O_NONBLOCK));
   if (r < 0) {
     lwip_close_r(network->socket);
     return LWMQTT_NETWORK_FAILED_CONNECT;

@@ -33,6 +33,11 @@ typedef struct {
 lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *host, char *port);
 
 /**
+ * Wait until the socket is connected or a timeout has been reached.
+ */
+lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *network, bool *connected, uint32_t timeout);
+
+/**
  * Terminate the connection.
  */
 void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network);
