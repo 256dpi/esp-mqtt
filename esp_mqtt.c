@@ -150,6 +150,12 @@ static bool esp_mqtt_process_connect() {
     return false;
   }
 
+  // release mutex
+  ESP_MQTT_UNLOCK_MAIN();
+
+  // acquire select mutex
+  ESP_MQTT_LOCK_SELECT();
+
   // wait for connection
   bool connected = false;
   err = esp_lwmqtt_network_wait(&esp_mqtt_network, &connected, esp_mqtt_command_timeout);
@@ -157,6 +163,12 @@ static bool esp_mqtt_process_connect() {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_wait: %d", err);
     return false;
   }
+
+  // release select mutex
+  ESP_MQTT_UNLOCK_SELECT();
+
+  // acquire mutex
+  ESP_MQTT_LOCK_MAIN();
 
   // return if not connected
   if (!connected) {
