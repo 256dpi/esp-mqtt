@@ -65,3 +65,16 @@ If the WiFi connection has been lost, stop the process:
 ```c++
 void esp_mqtt_stop();
 ```
+#### TLS connection
+
+**TLS connection option based on the [mbedtls](https://github.com/espressif/esp-idf/tree/master/components/mbedtls) component esp-idf framework.**
+
+ + To enable tls connection choose ```Use secure mbedtls connection``` in menu ```Connection type``` of esp-mqtt component config.
+ + Change ```MQTT background process task stack size``` to ```9216``` minimum in esp-mqtt component config.
+ + Get CA certificate from chain of certificates call ```openssl s_client -showcerts -connect broker.shiftr.io:8883```
+ (change host and port of your secure mqtt broker server).
+ + Put it in file ```server_root_cert.pem``` in main directory of your project. See example.
+ + Add to your ```component.mk``` file of main directory of your project 
+ ```c++
+ COMPONENT_EMBED_TXTFILES := server_root_cert.pem
+ ```

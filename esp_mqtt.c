@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(CONFIG_ESP_MQTT_USE_TLS)
+#include "esp_tls_lwmqtt.h"
+#endif
+
 #include "esp_lwmqtt.h"
 #include "esp_mqtt.h"
 
@@ -56,7 +60,11 @@ static esp_mqtt_message_callback_t esp_mqtt_message_callback = NULL;
 
 static lwmqtt_client_t esp_mqtt_client;
 
+#if defined(CONFIG_ESP_MQTT_USE_TLS)
+static esp_tls_lwmqtt_network_t esp_tls_mqtt_network;
+#else
 static esp_lwmqtt_network_t esp_mqtt_network = {0};
+#endif
 
 static esp_lwmqtt_timer_t esp_mqtt_timer1, esp_mqtt_timer2;
 
@@ -139,12 +147,20 @@ static bool esp_mqtt_process_connect() {
   // initialize the client
   lwmqtt_init(&esp_mqtt_client, esp_mqtt_write_buffer, esp_mqtt_buffer_size, esp_mqtt_read_buffer,
               esp_mqtt_buffer_size);
+  #if defined(CONFIG_ESP_MQTT_USE_TLS)
+  lwmqtt_set_network(&esp_mqtt_client, &esp_tls_mqtt_network, esp_tls_lwmqtt_network_read, esp_tls_lwmqtt_network_write);
+  #else
   lwmqtt_set_network(&esp_mqtt_client, &esp_mqtt_network, esp_lwmqtt_network_read, esp_lwmqtt_network_write);
+  #endif
   lwmqtt_set_timers(&esp_mqtt_client, &esp_mqtt_timer1, &esp_mqtt_timer2, esp_lwmqtt_timer_set, esp_lwmqtt_timer_get);
   lwmqtt_set_callback(&esp_mqtt_client, NULL, esp_mqtt_message_handler);
 
   // initiate network connection
+  #if defined(CONFIG_ESP_MQTT_USE_TLS)
+  lwmqtt_err_t err = esp_tls_lwmqtt_network_connect(&esp_tls_mqtt_network, esp_mqtt_config.host, esp_mqtt_config.port);
+  #else
   lwmqtt_err_t err = esp_lwmqtt_network_connect(&esp_mqtt_network, esp_mqtt_config.host, esp_mqtt_config.port);
+  #endif
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_connect: %d", err);
     return false;
@@ -158,7 +174,11 @@ static bool esp_mqtt_process_connect() {
 
   // wait for connection
   bool connected = false;
+  #if defined(CONFIG_ESP_MQTT_USE_TLS)
+  err = esp_tls_lwmqtt_network_wait(&esp_tls_mqtt_network, &connected, esp_mqtt_command_timeout);
+  #else
   err = esp_lwmqtt_network_wait(&esp_mqtt_network, &connected, esp_mqtt_command_timeout);
+  #endif
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_wait: %d", err);
     return false;
@@ -252,7 +272,11 @@ static void esp_mqtt_process(void *p) {
 
     // block until data is available
     bool available = false;
+    #if defined(CONFIG_ESP_MQTT_USE_TLS)
+    lwmqtt_err_t err = esp_tls_lwmqtt_network_select(&esp_tls_mqtt_network, &available, esp_mqtt_command_timeout);
+    #else
     lwmqtt_err_t err = esp_lwmqtt_network_select(&esp_mqtt_network, &available, esp_mqtt_command_timeout);
+    #endif
     if (err != LWMQTT_SUCCESS) {
       ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_select: %d", err);
       ESP_MQTT_UNLOCK_SELECT();
@@ -269,7 +293,11 @@ static void esp_mqtt_process(void *p) {
     if (available) {
       // get available bytes
       size_t available_bytes = 0;
+      #if defined(CONFIG_ESP_MQTT_USE_TLS)
+      err = esp_tls_lwmqtt_network_peek(&esp_tls_mqtt_network, &available_bytes, esp_mqtt_command_timeout);
+      #else
       err = esp_lwmqtt_network_peek(&esp_mqtt_network, &available_bytes);
+      #endif
       if (err != LWMQTT_SUCCESS) {
         ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_peek: %d", err);
         ESP_MQTT_UNLOCK_MAIN();
@@ -307,7 +335,11 @@ static void esp_mqtt_process(void *p) {
   ESP_MQTT_LOCK_MAIN();
 
   // disconnect network
+  #if defined(CONFIG_ESP_MQTT_USE_TLS)
+  esp_tls_lwmqtt_network_disconnect(&esp_tls_mqtt_network);
+  #else
   esp_lwmqtt_network_disconnect(&esp_mqtt_network);
+  #endif
 
   // set local flags
   esp_mqtt_connected = false;
@@ -560,7 +592,11 @@ void esp_mqtt_stop() {
   }
 
   // disconnect network
+  #if defined(CONFIG_ESP_MQTT_USE_TLS)
+  esp_tls_lwmqtt_network_disconnect(&esp_tls_mqtt_network);
+  #else
   esp_lwmqtt_network_disconnect(&esp_mqtt_network);
+  #endif
 
   // kill mqtt task
   ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_stop: deleting task");
