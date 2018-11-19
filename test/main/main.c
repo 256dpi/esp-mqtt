@@ -12,7 +12,12 @@
 #define MQTT_HOST "broker.shiftr.io"
 #define MQTT_USER "try"
 #define MQTT_PASS "try"
+
+#if defined(CONFIG_ESP_MQTT_USE_TLS)
+#define MQTT_PORT "8883"
+#else
 #define MQTT_PORT "1883"
+#endif
 
 static void process(void *p) {
   for (;;) {
