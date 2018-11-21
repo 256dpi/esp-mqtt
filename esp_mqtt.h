@@ -44,6 +44,19 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
  */
 void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained);
 
+#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
+/**
+ * Configure TLS connection
+ *
+ * Note: This method must be called before `esp_mqtt_start`.
+ *
+ * @param verify - Set verify connection.
+ * @param cacert - Pointer to CA certificate.
+ * @return Whether TLS configuration successful.
+ */
+bool esp_mqtt_tls(bool verify, const unsigned char * cacert, size_t cacert_len);
+#endif
+
 /**
  * Start the MQTT process.
  *

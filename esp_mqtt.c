@@ -474,6 +474,7 @@ bool esp_mqtt_start(const char *host, const char *port, const char *client_id, c
   #if (defined(CONFIG_ESP_MQTT_TLS_ONLY))
     if (esp_tls_mqtt_network.enable == false) {
       ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_mqtt_start: Call esp_mqtt_tls() before!");
+      ESP_MQTT_UNLOCK_MAIN();
       return;
     }
   #endif
