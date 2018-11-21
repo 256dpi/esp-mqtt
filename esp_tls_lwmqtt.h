@@ -13,9 +13,6 @@
 #include <esp_log.h>
 #include <sdkconfig.h>
 
-extern const uint8_t server_root_cert_pem_start[] asm("_binary_server_root_cert_pem_start");
-extern const uint8_t server_root_cert_pem_end[]   asm("_binary_server_root_cert_pem_end");
-
 /**
  * The tls lwmqtt network object for the esp platform.
  */
@@ -25,9 +22,11 @@ typedef struct {
   mbedtls_ssl_context ssl;
   mbedtls_ssl_config conf;
   mbedtls_x509_crt cacert;
-  mbedtls_x509_crt clientcert;
-  mbedtls_pk_context clientkey;
   mbedtls_net_context socket;
+  const unsigned char *cacert_buf;
+  size_t cacert_len;
+  bool verify;
+  bool enable;
 } esp_tls_lwmqtt_network_t;
 
 /**
