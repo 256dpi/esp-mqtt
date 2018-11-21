@@ -69,7 +69,16 @@ void esp_mqtt_stop();
 
 **TLS connection option based on the [mbedtls](https://github.com/espressif/esp-idf/tree/master/components/mbedtls) component esp-idf framework.**
 
- + To enable tls connection choose ```Use secure mbedtls connection``` in menu ```Connection type``` of esp-mqtt component config.
+There are 3 mode of connections which you can set from component configuration menu in section
+```Connection type```:
+ + ```Secure mbedtls and unsecure connection enable``` - default mode which allows use both connection secure or unsecure.
+ + ```Use no secure connection only``` - mode allow use only unsecure connection type. In this mode you can decrease
+```MQTT background process task stack size``` to 4096. In this mode you get minimal memmory size of component in firmware.
++ ```Use secure mbedtls connection only``` - mode allow use only secure connection. 
+
+To enable tls connection:
+ + Choose ```Secure mbedtls and unsecure connection enable``` or ```Use secure mbedtls connection only``` in menu
+ ```Connection type``` of esp-mqtt component config.
  + Change ```MQTT background process task stack size``` to ```9216``` minimum in esp-mqtt component config.
  + Get CA certificate from chain of certificates call ```openssl s_client -showcerts -connect broker.shiftr.io:8883```
  (change host and port of your secure mqtt broker server).
@@ -77,4 +86,13 @@ void esp_mqtt_stop();
  + Add to your ```component.mk``` file of main directory of your project 
  ```c++
  COMPONENT_EMBED_TXTFILES := server_root_cert.pem
+ ```
+ + Call
+ ```c++
+ bool esp_mqtt_tls(bool verify, const unsigned char * cacert, size_t cacert_len)
+ ```
+ to set verify option and CA certificate in tls structure before calling
+ ```c++
+ void esp_mqtt_start(const char *host, const char *port, const char *client_id,
+                     const char *username, const char *password);
  ```

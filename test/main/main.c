@@ -13,8 +13,10 @@
 #define MQTT_USER "try"
 #define MQTT_PASS "try"
 
-#if defined(CONFIG_ESP_MQTT_USE_TLS)
+#if (defined(CONFIG_ESP_MQTT_TLS_ENABLE_CONNECTION) || defined(CONFIG_ESP_MQTT_TLS_CONNECTION_ONLY))
 #define MQTT_PORT "8883"
+extern const uint8_t server_root_cert_pem_start[] asm("_binary_server_root_cert_pem_start");
+extern const uint8_t server_root_cert_pem_end[]   asm("_binary_server_root_cert_pem_end");
 #else
 #define MQTT_PORT "1883"
 #endif
@@ -32,6 +34,9 @@ static void restart(void *_) {
     // stop and start mqtt every minute
     vTaskDelay(60000 / portTICK_PERIOD_MS);
     esp_mqtt_stop();
+    #if (defined(CONFIG_ESP_MQTT_TLS_ENABLE_CONNECTION) || defined(CONFIG_ESP_MQTT_TLS_CONNECTION_ONLY))
+      esp_mqtt_tls(true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
+    #endif
     esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS);
   }
 }
@@ -71,6 +76,9 @@ static void status_callback(esp_mqtt_status_t status) {
       break;
     case ESP_MQTT_STATUS_DISCONNECTED:
       // reconnect
+      #if (defined(CONFIG_ESP_MQTT_TLS_ENABLE_CONNECTION) || defined(CONFIG_ESP_MQTT_TLS_CONNECTION_ONLY))
+        esp_mqtt_tls(true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
+      #endif
       esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS);
       break;
   }
