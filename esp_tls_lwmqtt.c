@@ -21,7 +21,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
 
   // setuping mbedtls connection
   if(mbedtls_ctr_drbg_seed(&network->ctr_drbg,
-         mbedtls_entropy_func,
+                           mbedtls_entropy_func,
                            &network->entropy, NULL, 0) != 0) {
       return LWMQTT_NETWORK_FAILED_CONNECT;
   }
