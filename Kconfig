@@ -11,7 +11,7 @@ config ESP_MQTT_ENABLED
 config ESP_MQTT_TASK_STACK_SIZE
     int "MQTT background process task stack size"
         depends on ESP_MQTT_ENABLED
-    default 4096
+    default 9216
 
 config ESP_MQTT_TASK_STACK_PRIORITY
     int "MQTT background process task priority"
@@ -26,19 +26,14 @@ config ESP_MQTT_EVENT_QUEUE_SIZE
         This value defines the amount of messages that are queued during various
         calls and dispatched by the background process.
 
-choice ESP_MQTT_SECURE_OPTION
-    prompt "Connection type"
-    depends on ESP_MQTT_ENABLED
-    default ESP_MQTT_NO_SECURE_CONNECTION
-    help
-        Choose secure option.
-        
-config ESP_MQTT_NO_SECURE_CONNECTION
-    bool "Use no secure connection"
+config ESP_MQTT_TLS_ENABLE
+   bool "Enable TLS connection"
+   depends on ESP_MQTT_ENABLED
+   default y
 
-config ESP_MQTT_USE_TLS
-    bool "Use secure mbedtls connection"
-
-endchoice
+config ESP_MQTT_TLS_ONLY
+   bool "Use only TLS connection"
+   depends on ESP_MQTT_TLS_ENABLE
+   default n
 
 endmenu

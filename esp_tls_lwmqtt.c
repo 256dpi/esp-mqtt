@@ -21,14 +21,14 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
 
   // setuping mbedtls connection
   if(mbedtls_ctr_drbg_seed(&network->ctr_drbg,
-         mbedtls_entropy_func,
+                           mbedtls_entropy_func,
                            &network->entropy, NULL, 0) != 0) {
       return LWMQTT_NETWORK_FAILED_CONNECT;
   }
   // parse ca certificate
   if (mbedtls_x509_crt_parse(&network->cacert,
-                             server_root_cert_pem_start,
-                             server_root_cert_pem_end - server_root_cert_pem_start) != 0) {
+                             network->cacert_buf,
+                             network->cacert_len) != 0) {
       return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
@@ -44,7 +44,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   }
 
   mbedtls_ssl_conf_ca_chain(&network->conf, &network->cacert, NULL);
-  mbedtls_ssl_conf_authmode(&network->conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+  mbedtls_ssl_conf_authmode(&network->conf, (network->verify) ? MBEDTLS_SSL_VERIFY_REQUIRED : MBEDTLS_SSL_VERIFY_NONE);
   mbedtls_ssl_conf_rng(&network->conf, mbedtls_ctr_drbg_random, &network->ctr_drbg);
 
 #if defined(CONFIG_MBEDTLS_DEBUG)
@@ -63,7 +63,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   mbedtls_ssl_set_bio(&network->ssl, &network->socket, mbedtls_net_send, mbedtls_net_recv, NULL);
 
   int flags;
-  if((flags = mbedtls_ssl_get_verify_result(&network->ssl)) != 0) {
+  if(network->verify && (flags = mbedtls_ssl_get_verify_result(&network->ssl)) != 0) {
       char vrfy_buf[100];
       mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ), "  ! ", flags );
       ESP_LOGE("mbedtls_ssl_get_verify_result", "%s flag: 0x%x\n\n", vrfy_buf, flags);
@@ -78,7 +78,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
       }
       return LWMQTT_NETWORK_FAILED_CONNECT;
   }
-
+  network->enable = true;
   return LWMQTT_SUCCESS;
 }
 
@@ -112,13 +112,12 @@ void esp_tls_lwmqtt_network_disconnect(esp_tls_lwmqtt_network_t *network) {
     }
     mbedtls_ssl_close_notify(&network->ssl);
     mbedtls_x509_crt_free(&network->cacert);
-    mbedtls_x509_crt_free(&network->clientcert);
-    mbedtls_pk_free(&network->clientkey);
     mbedtls_entropy_free(&network->entropy);
     mbedtls_ssl_config_free(&network->conf);
     mbedtls_ctr_drbg_free(&network->ctr_drbg);
     mbedtls_ssl_free(&network->ssl);
     mbedtls_net_free(&network->socket);
+    network->enable = false;
 }
 
 lwmqtt_err_t esp_tls_lwmqtt_network_select(esp_tls_lwmqtt_network_t *network, bool *available, uint32_t timeout) {
