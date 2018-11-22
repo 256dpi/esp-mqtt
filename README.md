@@ -24,7 +24,7 @@ You need to set `CONFIG_LWIP_SO_RCVBUF=y` manually in `sdkconfig`.
 
 ## Example
 
-An example can be found here: https://github.com/256dpi/esp-mqtt/blob/master/test/main/main.c.
+Examples can be found here: https://github.com/256dpi/esp-mqtt/examples.
 
 ## API
 
