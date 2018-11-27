@@ -54,7 +54,7 @@ void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained
  * @param cacert - Pointer to CA certificate.
  * @return Whether TLS configuration successful.
  */
-bool esp_mqtt_tls(bool verify, const unsigned char * cacert, size_t cacert_len);
+bool esp_mqtt_tls(bool verify, const unsigned char *cacert, size_t cacert_len);
 #endif
 
 /**

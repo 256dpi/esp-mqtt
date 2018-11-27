@@ -16,7 +16,7 @@
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
 #define MQTT_PORT "8883"
 extern const uint8_t server_root_cert_pem_start[] asm("_binary_server_root_cert_pem_start");
-extern const uint8_t server_root_cert_pem_end[]   asm("_binary_server_root_cert_pem_end");
+extern const uint8_t server_root_cert_pem_end[] asm("_binary_server_root_cert_pem_end");
 #else
 #define MQTT_PORT "1883"
 #endif
@@ -35,9 +35,9 @@ static void restart(void *_) {
     bool ret = true;
     vTaskDelay(60000 / portTICK_PERIOD_MS);
     esp_mqtt_stop();
-    #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-      ret = esp_mqtt_tls(true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
-    #endif
+#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
+    ret = esp_mqtt_tls(true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
+#endif
     (ret) ? esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS) : 0;
   }
 }
@@ -51,10 +51,10 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
       break;
 
     case SYSTEM_EVENT_STA_GOT_IP:
-      // start mqtt
-      #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-       ret = esp_mqtt_tls(true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
-      #endif
+// start mqtt
+#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
+      ret = esp_mqtt_tls(true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
+#endif
       (ret) ? esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS) : 0;
       break;
 
@@ -81,10 +81,10 @@ static void status_callback(esp_mqtt_status_t status) {
       esp_mqtt_subscribe("/hello", 2);
       break;
     case ESP_MQTT_STATUS_DISCONNECTED:
-      // reconnect
-      #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-        ret = esp_mqtt_tls(true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
-      #endif
+// reconnect
+#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
+      ret = esp_mqtt_tls(true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
+#endif
       (ret) ? esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS) : 0;
       break;
   }
