@@ -11,9 +11,9 @@
 lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, char *host, char *port) {
   // disconnect if not already the case
   esp_tls_lwmqtt_network_disconnect(network);
+
   // initialization mbedtls structures
   mbedtls_x509_crt_init(&network->cacert);
-
   mbedtls_ssl_init(&network->ssl);
   mbedtls_ssl_config_init(&network->conf);
   mbedtls_ctr_drbg_init(&network->ctr_drbg);
@@ -99,9 +99,12 @@ lwmqtt_err_t esp_tls_lwmqtt_network_wait(esp_tls_lwmqtt_network_t *network, bool
 }
 
 void esp_tls_lwmqtt_network_disconnect(esp_tls_lwmqtt_network_t *network) {
+  // check if network is available
   if (!network) {
     return;
   }
+
+  // cleanup resources
   mbedtls_ssl_close_notify(&network->ssl);
   mbedtls_x509_crt_free(&network->cacert);
   mbedtls_entropy_free(&network->entropy);
@@ -109,6 +112,7 @@ void esp_tls_lwmqtt_network_disconnect(esp_tls_lwmqtt_network_t *network) {
   mbedtls_ctr_drbg_free(&network->ctr_drbg);
   mbedtls_ssl_free(&network->ssl);
   mbedtls_net_free(&network->socket);
+
   network->enable = false;
 }
 
@@ -138,21 +142,26 @@ lwmqtt_err_t esp_tls_lwmqtt_network_peek(esp_tls_lwmqtt_network_t *network, size
   if (rc < 0) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
+
   // set socket to non blocking
   int ret = mbedtls_net_set_nonblock(&network->socket);
   if (ret != 0) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
+
   // get the available bytes on the socket
   ret = mbedtls_ssl_read(&network->ssl, NULL, 0);
   if (ret < 0 && ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
+
   *available = mbedtls_ssl_get_bytes_avail(&network->ssl);
+
   return LWMQTT_SUCCESS;
 }
 
 lwmqtt_err_t esp_tls_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len, size_t *read, uint32_t timeout) {
+  // cast network reference
   esp_tls_lwmqtt_network_t *network = (esp_tls_lwmqtt_network_t *)ref;
 
   // set timeout
@@ -162,12 +171,11 @@ lwmqtt_err_t esp_tls_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len,
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
+  // read from socket
   int ret = mbedtls_ssl_read(&network->ssl, buffer, len);
   if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
     return LWMQTT_SUCCESS;
-  }
-
-  if (ret <= 0) {
+  } else if (ret <= 0) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
@@ -178,6 +186,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len,
 }
 
 lwmqtt_err_t esp_tls_lwmqtt_network_write(void *ref, uint8_t *buffer, size_t len, size_t *sent, uint32_t timeout) {
+  // cast network reference
   esp_tls_lwmqtt_network_t *network = (esp_tls_lwmqtt_network_t *)ref;
 
   // set timeout
@@ -187,12 +196,11 @@ lwmqtt_err_t esp_tls_lwmqtt_network_write(void *ref, uint8_t *buffer, size_t len
     return LWMQTT_NETWORK_FAILED_WRITE;
   }
 
+  // write to socket
   int ret = mbedtls_ssl_write(&network->ssl, buffer, len);
   if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
     return LWMQTT_SUCCESS;
-  }
-
-  if (ret < 0) {
+  } else if (ret < 0) {
     return LWMQTT_NETWORK_FAILED_WRITE;
   }
 
