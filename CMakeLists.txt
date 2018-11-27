@@ -13,6 +13,8 @@ include_directories(
         test/esp-idf/components/lwip/include/lwip/port
         test/esp-idf/components/lwip/include/lwip
         test/esp-idf/components/nvs_flash/include
+        test/esp-idf/components/mbedtls/include
+        test/esp-idf/components/mbedtls/port/include
         lwmqtt/include
         .)
 
@@ -21,6 +23,8 @@ set(SOURCE_FILES
         esp_lwmqtt.h
         esp_mqtt.c
         esp_mqtt.h
+        esp_tls_lwmqtt.c
+        esp_tls_lwmqtt.h
         test/main/main.c)
 
 add_library(esp-mqtt ${SOURCE_FILES})
