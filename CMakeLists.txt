@@ -13,7 +13,7 @@ include_directories(
         test/esp-idf/components/lwip/include/lwip/port
         test/esp-idf/components/lwip/include/lwip
         test/esp-idf/components/nvs_flash/include
-        test/esp-idf/components/mbedtls/include
+        test/esp-idf/components/mbedtls/mbedtls/include
         test/esp-idf/components/mbedtls/port/include
         lwmqtt/include
         .)
