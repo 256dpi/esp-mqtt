@@ -364,7 +364,7 @@ void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained
   ESP_MQTT_UNLOCK_MAIN();
 }
 
-void esp_mqtt_start(const char *host, const char *port, const char *client_id, const char *username,
+bool esp_mqtt_start(const char *host, const char *port, const char *client_id, const char *username,
                     const char *password) {
   // acquire mutex
   ESP_MQTT_LOCK_MAIN();
@@ -373,7 +373,7 @@ void esp_mqtt_start(const char *host, const char *port, const char *client_id, c
   if (esp_mqtt_running) {
     ESP_LOGW(ESP_MQTT_LOG_TAG, "esp_mqtt_start: already running");
     ESP_MQTT_UNLOCK_MAIN();
-    return;
+    return true;
   }
 
   // free host if set
@@ -433,14 +433,21 @@ void esp_mqtt_start(const char *host, const char *port, const char *client_id, c
 
   // create mqtt thread
   ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_start: create task");
-  xTaskCreatePinnedToCore(esp_mqtt_process, "esp_mqtt", CONFIG_ESP_MQTT_TASK_STACK_SIZE, NULL,
-                          CONFIG_ESP_MQTT_TASK_STACK_PRIORITY, &esp_mqtt_task, 1);
+  BaseType_t ret = xTaskCreatePinnedToCore(esp_mqtt_process, "esp_mqtt", CONFIG_ESP_MQTT_TASK_STACK_SIZE, NULL,
+                                           CONFIG_ESP_MQTT_TASK_STACK_PRIORITY, &esp_mqtt_task, 1);
+  if (ret != pdPASS) {
+    ESP_LOGW(ESP_MQTT_LOG_TAG, "esp_mqtt_start: failed to create task");
+    ESP_MQTT_UNLOCK_MAIN();
+    return false;
+  }
 
   // set local flag
   esp_mqtt_running = true;
 
   // release mutex
   ESP_MQTT_UNLOCK_MAIN();
+
+  return true;
 }
 
 bool esp_mqtt_subscribe(const char *topic, int qos) {

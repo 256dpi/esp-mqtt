@@ -58,7 +58,7 @@ void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained
  * @param username - The client username.
  * @param password - The client password.
  */
-void esp_mqtt_start(const char *host, const char *port, const char *client_id, const char *username,
+bool esp_mqtt_start(const char *host, const char *port, const char *client_id, const char *username,
                     const char *password);
 
 /**
