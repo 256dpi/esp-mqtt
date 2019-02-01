@@ -10,9 +10,10 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   esp_tls_lwmqtt_network_disconnect(network);
 
   // initialize support structures
-  mbedtls_x509_crt_init(&network->cacert);
+  mbedtls_net_init(&network->socket);
   mbedtls_ssl_init(&network->ssl);
   mbedtls_ssl_config_init(&network->conf);
+  mbedtls_x509_crt_init(&network->cacert);
   mbedtls_ctr_drbg_init(&network->ctr_drbg);
   mbedtls_entropy_init(&network->entropy);
 
