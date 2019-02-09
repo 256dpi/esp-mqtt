@@ -26,6 +26,10 @@ You need to set `CONFIG_LWIP_SO_RCVBUF=y` manually in `sdkconfig`.
 
 An example can be found here: https://github.com/256dpi/esp-mqtt/blob/master/test/main/main.c.
 
+## Notes
+
+If you are sending large messages, setting `CONFIG_USE_ONLY_LWIP_SELECT=y` might prevent [some issues](https://github.com/espressif/esp-mqtt/issues/48).
+
 ## API
 
 Initialize the component once by passing the necessary callbacks:
