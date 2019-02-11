@@ -42,14 +42,14 @@ static struct {
   char *client_id;
   char *username;
   char *password;
-} esp_mqtt_config = {.host = NULL, .port = NULL, .client_id = NULL, .username = NULL, .password = NULL};
+} esp_mqtt_config = {0};
 
 static struct {
   char *topic;
   char *payload;
   int qos;
   bool retained;
-} esp_mqtt_lwt_config = {.topic = NULL, .payload = NULL, .qos = 0, .retained = false};
+} esp_mqtt_lwt_config = {0};
 
 static bool esp_mqtt_running = false;
 static bool esp_mqtt_connected = false;
