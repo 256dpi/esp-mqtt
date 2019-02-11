@@ -21,6 +21,17 @@ extern const uint8_t server_root_cert_pem_end[] asm("_binary_server_root_cert_pe
 #define MQTT_PORT "1883"
 #endif
 
+static void connect() {
+  static bool use_tls = false;
+
+  // cycle use tls
+  use_tls = !use_tls;
+
+  // start mqtt
+  esp_mqtt_tls(use_tls, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
+  esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS);
+}
+
 static void process(void *p) {
   for (;;) {
     // publish roughly every second
@@ -32,30 +43,24 @@ static void process(void *p) {
 static void restart(void *_) {
   for (;;) {
     // stop and start mqtt every minute
-    bool ret;
     vTaskDelay(60000 / portTICK_PERIOD_MS);
     esp_mqtt_stop();
-#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-    ret = esp_mqtt_tls(true, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
-#endif
-    (ret) ? esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS) : 0;
+    connect();
   }
 }
 
 static esp_err_t event_handler(void *ctx, system_event_t *event) {
-  bool ret;
   switch (event->event_id) {
     case SYSTEM_EVENT_STA_START:
       // connect to ap
       esp_wifi_connect();
+
       break;
 
     case SYSTEM_EVENT_STA_GOT_IP:
-// start mqtt
-#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-      ret = esp_mqtt_tls(true, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
-#endif
-      (ret) ? esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS) : 0;
+      // start mqtt
+      connect();
+
       break;
 
     case SYSTEM_EVENT_STA_DISCONNECTED:
@@ -64,6 +69,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 
       // reconnect wifi
       esp_wifi_connect();
+
       break;
 
     default:
@@ -74,18 +80,17 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 }
 
 static void status_callback(esp_mqtt_status_t status) {
-  bool ret;
   switch (status) {
     case ESP_MQTT_STATUS_CONNECTED:
       // subscribe
       esp_mqtt_subscribe("/hello", 2);
+
       break;
+
     case ESP_MQTT_STATUS_DISCONNECTED:
-// reconnect
-#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-      ret = esp_mqtt_tls(true, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
-#endif
-      (ret) ? esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS) : 0;
+      // reconnect
+      connect();
+
       break;
   }
 }
