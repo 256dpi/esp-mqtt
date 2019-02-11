@@ -34,21 +34,23 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
 /**
- * Configure TLS connection
+ * Configure TLS connection.
  *
  * Note: This method must be called before `esp_mqtt_start`.
  *
- * @param verify - Set verify connection.
- * @param cacert - Pointer to CA certificate.
- * @return Whether TLS configuration successful.
+ * @param enable - Whether TLS should be used.
+ * @param verify - Whether the connection should be verified.
+ * @param cacert - Pointer to the CA certificate.
+ * @param cacert_len - The length of the provided CA certificate.
+ * @return Whether TLS configuration was successful.
  */
-bool esp_mqtt_tls(bool verify, const unsigned char *cacert, size_t cacert_len);
+bool esp_mqtt_tls(bool enable, bool verify, const unsigned char *cacert, size_t cacert_len);
 #endif
 
 /**
  * Configure Last Will and Testament.
  *
- * Note: Must be called before esp_mqtt_start.
+ * Note: Must be called before `esp_mqtt_start`.
  *
  * @param topic - The LWT topic.
  * @param payload - The LWT payload.
@@ -70,6 +72,7 @@ void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained
  * @param client_id - The client id.
  * @param username - The client username.
  * @param password - The client password.
+ * @return Whether the operation was successful.
  */
 bool esp_mqtt_start(const char *host, const char *port, const char *client_id, const char *username,
                     const char *password);

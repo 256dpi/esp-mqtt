@@ -32,18 +32,18 @@ static void process(void *p) {
 static void restart(void *_) {
   for (;;) {
     // stop and start mqtt every minute
-    bool ret = true;
+    bool ret;
     vTaskDelay(60000 / portTICK_PERIOD_MS);
     esp_mqtt_stop();
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-    ret = esp_mqtt_tls(true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
+    ret = esp_mqtt_tls(true, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
 #endif
     (ret) ? esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS) : 0;
   }
 }
 
 static esp_err_t event_handler(void *ctx, system_event_t *event) {
-  bool ret = true;
+  bool ret;
   switch (event->event_id) {
     case SYSTEM_EVENT_STA_START:
       // connect to ap
@@ -53,7 +53,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
     case SYSTEM_EVENT_STA_GOT_IP:
 // start mqtt
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-      ret = esp_mqtt_tls(true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
+      ret = esp_mqtt_tls(true, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
 #endif
       (ret) ? esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS) : 0;
       break;
@@ -74,7 +74,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 }
 
 static void status_callback(esp_mqtt_status_t status) {
-  bool ret = true;
+  bool ret;
   switch (status) {
     case ESP_MQTT_STATUS_CONNECTED:
       // subscribe
@@ -83,7 +83,7 @@ static void status_callback(esp_mqtt_status_t status) {
     case ESP_MQTT_STATUS_DISCONNECTED:
 // reconnect
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-      ret = esp_mqtt_tls(true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
+      ret = esp_mqtt_tls(true, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
 #endif
       (ret) ? esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS) : 0;
       break;
