@@ -80,6 +80,26 @@ typedef struct {
   lwmqtt_message_t message;
 } esp_mqtt_event_t;
 
+void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, size_t buffer_size,
+                   int command_timeout) {
+  // set callbacks
+  esp_mqtt_status_callback = scb;
+  esp_mqtt_message_callback = mcb;
+  esp_mqtt_buffer_size = buffer_size;
+  esp_mqtt_command_timeout = (uint32_t)command_timeout;
+
+  // allocate buffers
+  esp_mqtt_write_buffer = malloc((size_t)buffer_size);
+  esp_mqtt_read_buffer = malloc((size_t)buffer_size);
+
+  // create mutexes
+  esp_mqtt_main_mutex = xSemaphoreCreateMutex();
+  esp_mqtt_select_mutex = xSemaphoreCreateMutex();
+
+  // create queue
+  esp_mqtt_event_queue = xQueueCreate(CONFIG_ESP_MQTT_EVENT_QUEUE_SIZE, sizeof(esp_mqtt_event_t *));
+}
+
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
 bool esp_mqtt_tls(bool verify, const unsigned char *cacert, size_t cacert_len) {
   // acquire mutex
@@ -102,26 +122,6 @@ bool esp_mqtt_tls(bool verify, const unsigned char *cacert, size_t cacert_len) {
   return true;
 }
 #endif
-
-void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, size_t buffer_size,
-                   int command_timeout) {
-  // set callbacks
-  esp_mqtt_status_callback = scb;
-  esp_mqtt_message_callback = mcb;
-  esp_mqtt_buffer_size = buffer_size;
-  esp_mqtt_command_timeout = (uint32_t)command_timeout;
-
-  // allocate buffers
-  esp_mqtt_write_buffer = malloc((size_t)buffer_size);
-  esp_mqtt_read_buffer = malloc((size_t)buffer_size);
-
-  // create mutexes
-  esp_mqtt_main_mutex = xSemaphoreCreateMutex();
-  esp_mqtt_select_mutex = xSemaphoreCreateMutex();
-
-  // create queue
-  esp_mqtt_event_queue = xQueueCreate(CONFIG_ESP_MQTT_EVENT_QUEUE_SIZE, sizeof(esp_mqtt_event_t *));
-}
 
 static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_string_t topic, lwmqtt_message_t msg) {
   // create message
