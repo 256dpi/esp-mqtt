@@ -25,7 +25,6 @@ typedef struct {
   const unsigned char *cacert_buf;
   size_t cacert_len;
   bool verify;
-  bool enable;
 } esp_tls_lwmqtt_network_t;
 
 /**

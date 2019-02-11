@@ -18,23 +18,26 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   mbedtls_entropy_init(&network->entropy);
 
   // setup entropy source
-  if (mbedtls_ctr_drbg_seed(&network->ctr_drbg, mbedtls_entropy_func, &network->entropy, NULL, 0) != 0) {
+  int ret = mbedtls_ctr_drbg_seed(&network->ctr_drbg, mbedtls_entropy_func, &network->entropy, NULL, 0);
+  if (ret != 0) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // parse ca certificate
-  if (mbedtls_x509_crt_parse(&network->cacert, network->cacert_buf, network->cacert_len) != 0) {
+  ret = mbedtls_x509_crt_parse(&network->cacert, network->cacert_buf, network->cacert_len);
+  if (ret != 0) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // connect socket
-  if (mbedtls_net_connect(&network->socket, host, port, MBEDTLS_NET_PROTO_TCP) != 0) {
+  ret = mbedtls_net_connect(&network->socket, host, port, MBEDTLS_NET_PROTO_TCP);
+  if (ret != 0) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // load defaults
-  if (mbedtls_ssl_config_defaults(&network->conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM,
-                                  MBEDTLS_SSL_PRESET_DEFAULT) != 0) {
+  ret = mbedtls_ssl_config_defaults(&network->conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
+  if (ret != 0) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
@@ -48,35 +51,39 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   mbedtls_ssl_conf_rng(&network->conf, mbedtls_ctr_drbg_random, &network->ctr_drbg);
 
   // setup ssl context
-  if (mbedtls_ssl_setup(&network->ssl, &network->conf) != 0) {
+  ret = mbedtls_ssl_setup(&network->ssl, &network->conf);
+  if (ret != 0) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // set hostname
-  if (mbedtls_ssl_set_hostname(&network->ssl, host) != 0) {
+  ret = mbedtls_ssl_set_hostname(&network->ssl, host);
+  if (ret != 0) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // set bio callbacks
   mbedtls_ssl_set_bio(&network->ssl, &network->socket, mbedtls_net_send, mbedtls_net_recv, NULL);
 
-  int flags;
-  if (network->verify && (flags = mbedtls_ssl_get_verify_result(&network->ssl)) != 0) {
-    char vrfy_buf[100];
-    mbedtls_x509_crt_verify_info(vrfy_buf, sizeof(vrfy_buf), "  ! ", flags);
-    ESP_LOGE("mbedtls_ssl_get_verify_result", "%s flag: 0x%x\n\n", vrfy_buf, flags);
+  // verify certificate if requested
+  if (network->verify) {
+    uint32_t flags = mbedtls_ssl_get_verify_result(&network->ssl);
+    if (flags != 0) {
+      char verify_buf[100] = {0};
+      mbedtls_x509_crt_verify_info(verify_buf, sizeof(verify_buf), "  ! ", flags);
+      ESP_LOGE("mbedtls_ssl_get_verify_result", "%s flag: 0x%x\n\n", verify_buf, flags);
+    }
   }
 
-  // perform ssl handshake
-  int ret;
-  if ((ret = mbedtls_ssl_handshake(&network->ssl)) != 0) {
+  // perform handshake
+  ret = mbedtls_ssl_handshake(&network->ssl);
+  if (ret != 0) {
     if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
       ESP_LOGE("mbedtls_ssl_handshake", "ERORR: -0x%x", -ret);
     }
+
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
-
-  network->enable = true;
 
   return LWMQTT_SUCCESS;
 }
@@ -102,6 +109,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_wait(esp_tls_lwmqtt_network_t *network, bool
   if (ret < 0) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
+
   return LWMQTT_SUCCESS;
 }
 
@@ -119,8 +127,6 @@ void esp_tls_lwmqtt_network_disconnect(esp_tls_lwmqtt_network_t *network) {
   mbedtls_ctr_drbg_free(&network->ctr_drbg);
   mbedtls_ssl_free(&network->ssl);
   mbedtls_net_free(&network->socket);
-
-  network->enable = false;
 }
 
 lwmqtt_err_t esp_tls_lwmqtt_network_select(esp_tls_lwmqtt_network_t *network, bool *available, uint32_t timeout) {
@@ -162,6 +168,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_peek(esp_tls_lwmqtt_network_t *network, size
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
+  // set available bytes
   *available = mbedtls_ssl_get_bytes_avail(&network->ssl);
 
   return LWMQTT_SUCCESS;
