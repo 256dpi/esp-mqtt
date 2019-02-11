@@ -42,8 +42,8 @@ static void process(void *p) {
 
 static void restart(void *_) {
   for (;;) {
-    // stop and start mqtt every minute
-    vTaskDelay(60000 / portTICK_PERIOD_MS);
+    // stop and start mqtt 15s
+    vTaskDelay(15000 / portTICK_PERIOD_MS);
     esp_mqtt_stop();
     connect();
   }
