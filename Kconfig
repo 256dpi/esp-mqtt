@@ -31,9 +31,4 @@ config ESP_MQTT_TLS_ENABLE
    depends on ESP_MQTT_ENABLED
    default y
 
-config ESP_MQTT_TLS_ONLY
-   bool "Use only TLS connection"
-   depends on ESP_MQTT_TLS_ENABLE
-   default n
-
 endmenu
