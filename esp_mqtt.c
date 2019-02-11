@@ -63,7 +63,7 @@ static lwmqtt_client_t esp_mqtt_client;
 static esp_lwmqtt_network_t esp_mqtt_network = {0};
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-static esp_tls_lwmqtt_network_t esp_tls_mqtt_network = {.cacert_buf = NULL};
+static esp_tls_lwmqtt_network_t esp_mqtt_tls_network = {0};
 #endif
 
 static bool esp_mqtt_use_tls = false;
@@ -91,9 +91,9 @@ bool esp_mqtt_tls(bool verify, const unsigned char *cacert, size_t cacert_len) {
     return false;
   }
 
-  esp_tls_mqtt_network.verify = verify;
-  esp_tls_mqtt_network.cacert_buf = cacert;
-  esp_tls_mqtt_network.cacert_len = cacert_len;
+  esp_mqtt_tls_network.verify = verify;
+  esp_mqtt_tls_network.cacert_buf = cacert;
+  esp_mqtt_tls_network.cacert_len = cacert_len;
 
   esp_mqtt_use_tls = true;
 
@@ -175,7 +175,7 @@ static bool esp_mqtt_process_connect() {
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
   if (esp_mqtt_use_tls) {
-    lwmqtt_set_network(&esp_mqtt_client, &esp_tls_mqtt_network, esp_tls_lwmqtt_network_read,
+    lwmqtt_set_network(&esp_mqtt_client, &esp_mqtt_tls_network, esp_tls_lwmqtt_network_read,
                        esp_tls_lwmqtt_network_write);
   } else {
     lwmqtt_set_network(&esp_mqtt_client, &esp_mqtt_network, esp_lwmqtt_network_read, esp_lwmqtt_network_write);
@@ -191,7 +191,7 @@ static bool esp_mqtt_process_connect() {
   lwmqtt_err_t err;
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
   if (esp_mqtt_use_tls) {
-    err = esp_tls_lwmqtt_network_connect(&esp_tls_mqtt_network, esp_mqtt_config.host, esp_mqtt_config.port);
+    err = esp_tls_lwmqtt_network_connect(&esp_mqtt_tls_network, esp_mqtt_config.host, esp_mqtt_config.port);
   } else {
     err = esp_lwmqtt_network_connect(&esp_mqtt_network, esp_mqtt_config.host, esp_mqtt_config.port);
   }
@@ -215,7 +215,7 @@ static bool esp_mqtt_process_connect() {
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
   if (esp_mqtt_use_tls) {
-    err = esp_tls_lwmqtt_network_wait(&esp_tls_mqtt_network, &connected, esp_mqtt_command_timeout);
+    err = esp_tls_lwmqtt_network_wait(&esp_mqtt_tls_network, &connected, esp_mqtt_command_timeout);
   } else {
     err = esp_lwmqtt_network_wait(&esp_mqtt_network, &connected, esp_mqtt_command_timeout);
   }
@@ -320,7 +320,7 @@ static void esp_mqtt_process(void *p) {
     lwmqtt_err_t err;
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
     if (esp_mqtt_use_tls) {
-      err = esp_tls_lwmqtt_network_select(&esp_tls_mqtt_network, &available, esp_mqtt_command_timeout);
+      err = esp_tls_lwmqtt_network_select(&esp_mqtt_tls_network, &available, esp_mqtt_command_timeout);
     } else {
       err = esp_lwmqtt_network_select(&esp_mqtt_network, &available, esp_mqtt_command_timeout);
     }
@@ -347,7 +347,7 @@ static void esp_mqtt_process(void *p) {
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
       if (esp_mqtt_use_tls) {
-        err = esp_tls_lwmqtt_network_peek(&esp_tls_mqtt_network, &available_bytes, esp_mqtt_command_timeout);
+        err = esp_tls_lwmqtt_network_peek(&esp_mqtt_tls_network, &available_bytes, esp_mqtt_command_timeout);
       } else {
         err = esp_lwmqtt_network_peek(&esp_mqtt_network, &available_bytes);
       }
@@ -394,7 +394,7 @@ static void esp_mqtt_process(void *p) {
 // disconnect network
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
   if (esp_mqtt_use_tls) {
-    esp_tls_lwmqtt_network_disconnect(&esp_tls_mqtt_network);
+    esp_tls_lwmqtt_network_disconnect(&esp_mqtt_tls_network);
   } else {
     esp_lwmqtt_network_disconnect(&esp_mqtt_network);
   }
@@ -655,7 +655,7 @@ void esp_mqtt_stop() {
 // disconnect network
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
   if (esp_mqtt_use_tls) {
-    esp_tls_lwmqtt_network_disconnect(&esp_tls_mqtt_network);
+    esp_tls_lwmqtt_network_disconnect(&esp_mqtt_tls_network);
   } else {
     esp_lwmqtt_network_disconnect(&esp_mqtt_network);
   }
