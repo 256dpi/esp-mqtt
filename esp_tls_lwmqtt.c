@@ -24,7 +24,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   }
 
   // parse ca certificate
-  ret = mbedtls_x509_crt_parse(&network->cacert, network->cacert_buf, network->cacert_len);
+  ret = mbedtls_x509_crt_parse(&network->cacert, network->ca_buf, network->ca_len);
   if (ret != 0) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }

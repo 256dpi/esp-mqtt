@@ -101,7 +101,7 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
 }
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-bool esp_mqtt_tls(bool enable, bool verify, const unsigned char *cacert, size_t cacert_len) {
+bool esp_mqtt_tls(bool enable, bool verify, const unsigned char *ca_buf, size_t ca_len) {
   // acquire mutex
   ESP_MQTT_LOCK_MAIN();
 
@@ -109,15 +109,15 @@ bool esp_mqtt_tls(bool enable, bool verify, const unsigned char *cacert, size_t 
   if (!enable) {
     esp_mqtt_use_tls = false;
     esp_mqtt_tls_network.verify = false;
-    esp_mqtt_tls_network.cacert_buf = NULL;
-    esp_mqtt_tls_network.cacert_len = 0;
+    esp_mqtt_tls_network.ca_buf = NULL;
+    esp_mqtt_tls_network.ca_len = 0;
     ESP_MQTT_UNLOCK_MAIN();
     return true;
   }
 
   // check ca certificate
-  if (!cacert || cacert_len <= 0) {
-    ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_mqtt_tls: cacert must be not NULL.");
+  if (!ca_buf || ca_len <= 0) {
+    ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_mqtt_tls: ca_buf must be not NULL.");
     ESP_MQTT_UNLOCK_MAIN();
     return false;
   }
@@ -125,8 +125,8 @@ bool esp_mqtt_tls(bool enable, bool verify, const unsigned char *cacert, size_t 
   // set configuration
   esp_mqtt_use_tls = true;
   esp_mqtt_tls_network.verify = verify;
-  esp_mqtt_tls_network.cacert_buf = cacert;
-  esp_mqtt_tls_network.cacert_len = cacert_len;
+  esp_mqtt_tls_network.ca_buf = ca_buf;
+  esp_mqtt_tls_network.ca_len = ca_len;
 
   // release mutex
   ESP_MQTT_UNLOCK_MAIN();

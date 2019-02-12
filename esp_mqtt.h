@@ -40,11 +40,11 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
  *
  * @param enable - Whether TLS should be used.
  * @param verify - Whether the connection should be verified.
- * @param cacert - Pointer to the CA certificate.
- * @param cacert_len - The length of the provided CA certificate.
+ * @param ca_buf - The beginning of the CA certificate buffer.
+ * @param ca_len - The length of the CA certificate buffer.
  * @return Whether TLS configuration was successful.
  */
-bool esp_mqtt_tls(bool enable, bool verify, const unsigned char *cacert, size_t cacert_len);
+bool esp_mqtt_tls(bool enable, bool verify, const unsigned char *ca_buf, size_t ca_len);
 #endif
 
 /**
