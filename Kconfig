@@ -12,6 +12,8 @@ config ESP_MQTT_TASK_STACK_SIZE
     int "MQTT background process task stack size"
         depends on ESP_MQTT_ENABLED
     default 9216
+    help
+        Specify at least 9216 if TLS is used and at least 4096 otherwise.
 
 config ESP_MQTT_TASK_STACK_PRIORITY
     int "MQTT background process task priority"
@@ -30,5 +32,7 @@ config ESP_MQTT_TLS_ENABLE
    bool "Enable TLS connection"
    depends on ESP_MQTT_ENABLED
    default y
+   help
+        You can deactivate TLS to save space in memory and flash.
 
 endmenu
