@@ -27,6 +27,7 @@ static void connect() {
   use_tls = !use_tls;
 
   // start mqtt
+  ESP_LOGI("test", "starting mqtt with tls=%d", use_tls);
   esp_mqtt_tls(use_tls, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
   esp_mqtt_start(MQTT_HOST, use_tls ? MQTTS_PORT : MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS);
 }
