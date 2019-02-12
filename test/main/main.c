@@ -6,20 +6,19 @@
 #include <esp_wifi.h>
 #include <nvs_flash.h>
 
-#define WIFI_SSID "ssid"
-#define WIFI_PASS "pass"
+#define WIFI_SSID "Tech_D0054168"
+#define WIFI_PASS "XQEPJPPM"
 
 #define MQTT_HOST "broker.shiftr.io"
 #define MQTT_USER "try"
 #define MQTT_PASS "try"
 
-#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-#define MQTT_PORT "8883"
+#define MQTT_PORT "1883"
+#define MQTTS_PORT "8883"
+
+// openssl s_client -showcerts -connect broker.shiftr.io:8883
 extern const uint8_t server_root_cert_pem_start[] asm("_binary_server_root_cert_pem_start");
 extern const uint8_t server_root_cert_pem_end[] asm("_binary_server_root_cert_pem_end");
-#else
-#define MQTT_PORT "1883"
-#endif
 
 static void connect() {
   static bool use_tls = false;
@@ -29,7 +28,7 @@ static void connect() {
 
   // start mqtt
   esp_mqtt_tls(use_tls, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
-  esp_mqtt_start(MQTT_HOST, MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS);
+  esp_mqtt_start(MQTT_HOST, use_tls ? MQTTS_PORT : MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS);
 }
 
 static void process(void *p) {
