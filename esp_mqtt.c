@@ -63,10 +63,9 @@ static lwmqtt_client_t esp_mqtt_client;
 static esp_lwmqtt_network_t esp_mqtt_network = {0};
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
+static bool esp_mqtt_use_tls = false;
 static esp_tls_lwmqtt_network_t esp_mqtt_tls_network = {0};
 #endif
-
-static bool esp_mqtt_use_tls = false;
 
 static esp_lwmqtt_timer_t esp_mqtt_timer1, esp_mqtt_timer2;
 
