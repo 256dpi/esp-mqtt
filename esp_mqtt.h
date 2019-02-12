@@ -36,6 +36,8 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
 /**
  * Configure TLS connection.
  *
+ * The specified CA certificate is not copied and must be available during the whole duration of the MQTT usage.
+ *
  * Note: This method must be called before `esp_mqtt_start`.
  *
  * @param enable - Whether TLS should be used.
