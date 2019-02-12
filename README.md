@@ -42,8 +42,7 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
 Enable secure connection using TLS:
 
 ```c++
-bool esp_mqtt_tls(bool enabled, bool verify, const unsigned char * ca_buf,
-                  size_t ca_len);
+bool esp_mqtt_tls(bool enabled, bool verify, const unsigned char * ca_buf, size_t ca_len);
 ```
 
 Optionally, configure a Last Will and Testament:
