@@ -46,7 +46,7 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
  * @param ca_len - The length of the CA certificate buffer.
  * @return Whether TLS configuration was successful.
  */
-bool esp_mqtt_tls(bool enable, bool verify, const unsigned char *ca_buf, size_t ca_len);
+bool esp_mqtt_tls(bool enable, bool verify, const uint8_t *ca_buf, size_t ca_len);
 #endif
 
 /**

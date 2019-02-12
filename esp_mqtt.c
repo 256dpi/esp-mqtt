@@ -100,7 +100,7 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
 }
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-bool esp_mqtt_tls(bool enable, bool verify, const unsigned char *ca_buf, size_t ca_len) {
+bool esp_mqtt_tls(bool enable, bool verify, const uint8_t *ca_buf, size_t ca_len) {
   // acquire mutex
   ESP_MQTT_LOCK_MAIN();
 
@@ -124,7 +124,7 @@ bool esp_mqtt_tls(bool enable, bool verify, const unsigned char *ca_buf, size_t 
   // set configuration
   esp_mqtt_use_tls = true;
   esp_mqtt_tls_network.verify = verify;
-  esp_mqtt_tls_network.ca_buf = ca_buf;
+  esp_mqtt_tls_network.ca_buf = (uint8_t *)ca_buf;
   esp_mqtt_tls_network.ca_len = ca_len;
 
   // release mutex

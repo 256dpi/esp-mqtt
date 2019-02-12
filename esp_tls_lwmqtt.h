@@ -22,7 +22,7 @@ typedef struct {
   mbedtls_ssl_config conf;
   mbedtls_x509_crt cacert;
   mbedtls_net_context socket;
-  const unsigned char *ca_buf;
+  uint8_t *ca_buf;
   size_t ca_len;
   bool verify;
 } esp_tls_lwmqtt_network_t;
