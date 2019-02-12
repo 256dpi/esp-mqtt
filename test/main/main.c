@@ -6,8 +6,8 @@
 #include <esp_wifi.h>
 #include <nvs_flash.h>
 
-#define WIFI_SSID "Tech_D0054168"
-#define WIFI_PASS "XQEPJPPM"
+#define WIFI_SSID ""
+#define WIFI_PASS ""
 
 #define MQTT_HOST "broker.shiftr.io"
 #define MQTT_USER "try"
