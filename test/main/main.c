@@ -16,7 +16,7 @@
 #define MQTT_PORT "1883"
 #define MQTTS_PORT "8883"
 
-// openssl s_client -showcerts -connect public.cloud.shiftr.io:8883
+// openssl s_client -showcerts -connect public.cloud.shiftr.io:8883 -servername public.cloud.shiftr.io
 extern const uint8_t server_root_cert_pem_start[] asm("_binary_server_root_cert_pem_start");
 extern const uint8_t server_root_cert_pem_end[] asm("_binary_server_root_cert_pem_end");
 
