@@ -9,14 +9,14 @@
 #define WIFI_SSID ""
 #define WIFI_PASS ""
 
-#define MQTT_HOST "broker.shiftr.io"
-#define MQTT_USER "try"
-#define MQTT_PASS "try"
+#define MQTT_HOST "public.cloud.shiftr.io"
+#define MQTT_USER "public"
+#define MQTT_PASS "public"
 
 #define MQTT_PORT "1883"
 #define MQTTS_PORT "8883"
 
-// openssl s_client -showcerts -connect broker.shiftr.io:8883
+// openssl s_client -showcerts -connect public.cloud.shiftr.io:8883
 extern const uint8_t server_root_cert_pem_start[] asm("_binary_server_root_cert_pem_start");
 extern const uint8_t server_root_cert_pem_end[] asm("_binary_server_root_cert_pem_end");
 
