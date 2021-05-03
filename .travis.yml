@@ -10,5 +10,6 @@ addons:
     - gperf
 
 script:
-  - pip install pyserial
+  - make test/xtensa-esp32-elf test/esp-idf
+  - pip install --user -r test/esp-idf/requirements.txt
   - make build
