@@ -1,14 +1,12 @@
 dist: focal
 sudo: false
-
-language:
-  - cpp
+language: cpp
 
 addons:
   apt:
     packages:
-    - gperf
-    - python-is-python3
+      - gperf
+      - python-is-python3
 
 script:
   - make test/xtensa-esp32-elf test/esp-idf
