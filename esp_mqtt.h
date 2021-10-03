@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * The statuses emitted by the status callback.
  */
@@ -129,5 +133,9 @@ bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, 
  * Will stop initial connection attempts or disconnect any active connection.
  */
 void esp_mqtt_stop();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // ESP_MQTT_H
