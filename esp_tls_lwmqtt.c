@@ -24,9 +24,11 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   }
 
   // parse ca certificate
-  ret = mbedtls_x509_crt_parse(&network->cacert, network->ca_buf, network->ca_len);
-  if (ret != 0) {
-    return LWMQTT_NETWORK_FAILED_CONNECT;
+  if (network->ca_buf) {
+    ret = mbedtls_x509_crt_parse(&network->cacert, network->ca_buf, network->ca_len);
+    if (ret != 0) {
+      return LWMQTT_NETWORK_FAILED_CONNECT;
+    }
   }
 
   // connect socket
@@ -43,7 +45,9 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   }
 
   // set ca certificate
-  mbedtls_ssl_conf_ca_chain(&network->conf, &network->cacert, NULL);
+  if (network->ca_buf) {
+    mbedtls_ssl_conf_ca_chain(&network->conf, &network->cacert, NULL);
+  }
 
   // set auth mode
   mbedtls_ssl_conf_authmode(&network->conf, (network->verify) ? MBEDTLS_SSL_VERIFY_REQUIRED : MBEDTLS_SSL_VERIFY_NONE);
