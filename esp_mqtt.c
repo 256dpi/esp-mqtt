@@ -115,8 +115,8 @@ bool esp_mqtt_tls(bool enable, bool verify, const uint8_t *ca_buf, size_t ca_len
   }
 
   // check ca certificate
-  if (!ca_buf || ca_len <= 0) {
-    ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_mqtt_tls: ca_buf must be not NULL.");
+  if (verify && (!ca_buf || ca_len <= 0)) {
+    ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_mqtt_tls: ca_buf must be not NULL when verify is enabled.");
     ESP_MQTT_UNLOCK_MAIN();
     return false;
   }
