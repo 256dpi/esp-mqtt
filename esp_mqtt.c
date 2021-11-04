@@ -75,6 +75,7 @@ static void *esp_mqtt_read_buffer;
 static QueueHandle_t esp_mqtt_event_queue = NULL;
 
 typedef struct {
+  void *buffer;
   lwmqtt_string_t topic;
   lwmqtt_message_t message;
 } esp_mqtt_event_t;
@@ -138,9 +139,12 @@ static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_
   // create message
   esp_mqtt_event_t evt = {0};
 
+  // allocate buffer
+  evt.buffer = malloc((size_t)topic.len + 1 + msg.payload_len + 1);
+
   // copy topic with additional null termination
   evt.topic.len = topic.len;
-  evt.topic.data = malloc((size_t)topic.len + 1);
+  evt.topic.data = evt.buffer;
   memcpy(evt.topic.data, topic.data, (size_t)topic.len);
   evt.topic.data[topic.len] = 0;
 
@@ -148,15 +152,14 @@ static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_
   evt.message.retained = msg.retained;
   evt.message.qos = msg.qos;
   evt.message.payload_len = msg.payload_len;
-  evt.message.payload = malloc((size_t)msg.payload_len + 1);
+  evt.message.payload = evt.buffer + topic.len + 1;
   memcpy(evt.message.payload, msg.payload, (size_t)msg.payload_len);
   evt.message.payload[msg.payload_len] = 0;
 
   // queue event
   if (xQueueSend(esp_mqtt_event_queue, &evt, 0) != pdTRUE) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "xQueueSend: queue is full, dropping message");
-    free(evt.topic.data);
-    free(evt.message.payload);
+    free(evt.buffer);
   }
 }
 
@@ -169,9 +172,8 @@ static void esp_mqtt_dispatch_events() {
       esp_mqtt_message_callback(evt.topic.data, evt.message.payload, evt.message.payload_len);
     }
 
-    // free data
-    free(evt.topic.data);
-    free(evt.message.payload);
+    // free buffer
+    free(evt.buffer);
   }
 }
 
