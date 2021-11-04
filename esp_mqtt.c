@@ -96,7 +96,7 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
   esp_mqtt_select_mutex = xSemaphoreCreateMutex();
 
   // create queue
-  esp_mqtt_event_queue = xQueueCreate(CONFIG_ESP_MQTT_EVENT_QUEUE_SIZE, sizeof(esp_mqtt_event_t *));
+  esp_mqtt_event_queue = xQueueCreate(CONFIG_ESP_MQTT_EVENT_QUEUE_SIZE, sizeof(esp_mqtt_event_t));
 }
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
@@ -136,46 +136,42 @@ bool esp_mqtt_tls(bool enable, bool verify, const uint8_t *ca_buf, size_t ca_len
 
 static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_string_t topic, lwmqtt_message_t msg) {
   // create message
-  esp_mqtt_event_t *evt = malloc(sizeof(esp_mqtt_event_t));
+  esp_mqtt_event_t evt = {0};
 
   // copy topic with additional null termination
-  evt->topic.len = topic.len;
-  evt->topic.data = malloc((size_t)topic.len + 1);
-  memcpy(evt->topic.data, topic.data, (size_t)topic.len);
-  evt->topic.data[topic.len] = 0;
+  evt.topic.len = topic.len;
+  evt.topic.data = malloc((size_t)topic.len + 1);
+  memcpy(evt.topic.data, topic.data, (size_t)topic.len);
+  evt.topic.data[topic.len] = 0;
 
   // copy message with additional null termination
-  evt->message.retained = msg.retained;
-  evt->message.qos = msg.qos;
-  evt->message.payload_len = msg.payload_len;
-  evt->message.payload = malloc((size_t)msg.payload_len + 1);
-  memcpy(evt->message.payload, msg.payload, (size_t)msg.payload_len);
-  evt->message.payload[msg.payload_len] = 0;
+  evt.message.retained = msg.retained;
+  evt.message.qos = msg.qos;
+  evt.message.payload_len = msg.payload_len;
+  evt.message.payload = malloc((size_t)msg.payload_len + 1);
+  memcpy(evt.message.payload, msg.payload, (size_t)msg.payload_len);
+  evt.message.payload[msg.payload_len] = 0;
 
   // queue event
   if (xQueueSend(esp_mqtt_event_queue, &evt, 0) != pdTRUE) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "xQueueSend: queue is full, dropping message");
-    free(evt->topic.data);
-    free(evt->message.payload);
-    free(evt);
+    free(evt.topic.data);
+    free(evt.message.payload);
   }
 }
 
 static void esp_mqtt_dispatch_events() {
-  // prepare event
-  esp_mqtt_event_t *evt = NULL;
-
   // receive next event
+  esp_mqtt_event_t evt = {0};
   while (xQueueReceive(esp_mqtt_event_queue, &evt, 0) == pdTRUE) {
     // call callback if existing
     if (esp_mqtt_message_callback) {
-      esp_mqtt_message_callback(evt->topic.data, evt->message.payload, evt->message.payload_len);
+      esp_mqtt_message_callback(evt.topic.data, evt.message.payload, evt.message.payload_len);
     }
 
     // free data
-    free(evt->topic.data);
-    free(evt->message.payload);
-    free(evt);
+    free(evt.topic.data);
+    free(evt.message.payload);
   }
 }
 
