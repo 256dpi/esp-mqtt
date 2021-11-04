@@ -44,12 +44,12 @@ build: test/xtensa-esp32-elf test/esp-idf
 flash: test/xtensa-esp32-elf test/esp-idf
 	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make flash
 
-monitor: test/xtensa-esp32-elf test/esp-idf
+monitor: test/xtensa-esp32-elf test/esp-idf test/components/esp-mqtt
+	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make monitor
+
+simple-monitor: test/xtensa-esp32-elf test/esp-idf
 	@clear
 	miniterm.py /dev/cu.SLAB_USBtoUART 115200 --rts 0 --dtr 0 --raw --exit-char 99
-
-idf-monitor: test/xtensa-esp32-elf test/esp-idf test/components/esp-mqtt
-	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make monitor
 
 debug:
 	 export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; export IDF_PATH=$(shell pwd)/test/esp-idf; ./test/esp-idf/components/espcoredump/espcoredump.py info_corefile -t b64 -c ./test/dump.txt ./test/build/esp-mqtt.elf
