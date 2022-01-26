@@ -1,13 +1,13 @@
-cmake_minimum_required(VERSION 3.7)
-set(CMAKE_C_STANDARD 99)
-
-FILE(GLOB_RECURSE sources
+set(srcs
     "esp_lwmqtt.c"
     "esp_mqtt.c"
     "esp_tls_lwmqtt.c"
-    "lwmqtt/src/*.*")
+    "lwmqtt/src/client.c"
+    "lwmqtt/src/helpers.c"
+    "lwmqtt/src/packet.c"
+    "lwmqtt/src/string.c")
 
-idf_component_register(SRCS ${sources}
+idf_component_register(SRCS ${srcs}
     INCLUDE_DIRS "." "lwmqtt/include"
     REQUIRES mbedtls
 )
