@@ -8,9 +8,15 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
+      - name: Prepare
+        run: sudo apt-get install python-is-python3 gperf -y
       - name: Test
         run: |
-          sudo apt-get install python-is-python3 gperf -y
           make test/xtensa-esp32-elf test/esp-idf
           /usr/bin/python -m pip install --user -r test/esp-idf/requirements.txt
           make build
+      - name: Test4
+        run: |
+          make test4/esp-idf install4
+          /usr/bin/python -m pip install --user -r test4/esp-idf/requirements.txt
+          make build4

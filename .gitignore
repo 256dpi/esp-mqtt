@@ -1,4 +1,8 @@
+.idea/
 cmake-build-debug/
 test/xtensa-esp32-elf
 test/esp-idf
 test/build
+test4/esp-idf
+test4/tools
+test4/build
