@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 set(CMAKE_C_STANDARD 99)
 
-
 FILE(GLOB_RECURSE sources
     "esp_lwmqtt.c"
     "esp_mqtt.c"
