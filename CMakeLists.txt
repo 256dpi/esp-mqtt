@@ -7,6 +7,7 @@ include_directories(
         test/build/include
         test/xtensa-esp32-elf/xtensa-esp32-elf/include
         test/esp-idf/components/esp32/include
+        test/esp-idf/components/esp_event/include
         test/esp-idf/components/freertos/include
         test/esp-idf/components/log/include
         test/esp-idf/components/tcpip_adapter/include
