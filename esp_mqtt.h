@@ -71,7 +71,8 @@ void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained
  * The background process will attempt to connect to the specified broker once a second until a connection can be
  * established. This process can be interrupted by calling `esp_mqtt_stop();`. If a connection has been established,
  * the status callback will be called with `ESP_MQTT_STATUS_CONNECTED`. From that moment on the functions
- * `esp_mqtt_subscribe`, `esp_mqtt_unsubscribe` and `esp_mqtt_publish` can be used to interact with the broker.
+ * `esp_mqtt_subscribe`, `esp_mqtt_unsubscribe` and `esp_mqtt_publish` can be used to interact with the broker. If an
+ * established connection fails, it will be retried until the process is stopped.
  *
  * @param host - The broker host.
  * @param port - The broker port.
@@ -130,7 +131,7 @@ bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, 
 /**
  * Stop the MQTT process.
  *
- * Will stop initial connection attempts or disconnect any active connection.
+ * Will stop the running MQTT process.
  */
 void esp_mqtt_stop();
 

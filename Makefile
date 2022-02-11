@@ -9,8 +9,8 @@ endif
 ESP_IDF_VERSION := "v3.3.5"
 
 fmt:
-	clang-format -i ./*.c ./*.h -style="{BasedOnStyle: Google, ColumnLimit: 120}"
-	clang-format -i ./test/main/*.c -style="{BasedOnStyle: Google, ColumnLimit: 120}"
+	clang-format -i ./*.c ./*.h -style="{BasedOnStyle: Google, ColumnLimit: 120, SortIncludes: false}"
+	clang-format -i ./test/main/*.c -style="{BasedOnStyle: Google, ColumnLimit: 120, SortIncludes: false}"
 
 test/xtensa-esp32-elf:
 	wget https://dl.espressif.com/dl/$(XTENSA_TOOLCHAIN)

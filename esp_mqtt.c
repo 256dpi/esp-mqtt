@@ -3,7 +3,6 @@
 #include <freertos/semphr.h>
 #include <freertos/task.h>
 #include <lwmqtt.h>
-#include <stdio.h>
 #include <string.h>
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
@@ -274,7 +273,7 @@ static bool esp_mqtt_process_connect() {
   return true;
 }
 
-static void esp_mqtt_process(void *p) {
+static void esp_mqtt_process() {
   // connection loop
   for (;;) {
     // log attempt
@@ -288,7 +287,7 @@ static void esp_mqtt_process(void *p) {
       // log success
       ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_process: connection attempt successful");
 
-      // set local flag
+      // set flag
       esp_mqtt_connected = true;
 
       // release mutex
@@ -411,23 +410,27 @@ static void esp_mqtt_process(void *p) {
   esp_lwmqtt_network_disconnect(&esp_mqtt_network);
 #endif
 
-  // set local flags
+  // set flags
   esp_mqtt_connected = false;
-  esp_mqtt_running = false;
   esp_mqtt_error = false;
 
   // release mutex
   ESP_MQTT_UNLOCK_MAIN();
 
-  ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_process: exit task");
+  // log event
+  ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_process: lost connection");
 
   // call callback if existing
   if (esp_mqtt_status_callback) {
     esp_mqtt_status_callback(ESP_MQTT_STATUS_DISCONNECTED);
   }
+}
 
-  // delete task
-  vTaskDelete(NULL);
+static void esp_mqtt_run(void *p) {
+  // keep processing
+  for (;;) {
+    esp_mqtt_process();
+  }
 }
 
 void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained) {
@@ -535,7 +538,7 @@ bool esp_mqtt_start(const char *host, const char *port, const char *client_id, c
 
   // create mqtt thread
   ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_start: create task");
-  BaseType_t ret = xTaskCreatePinnedToCore(esp_mqtt_process, "esp_mqtt", CONFIG_ESP_MQTT_TASK_STACK_SIZE, NULL,
+  BaseType_t ret = xTaskCreatePinnedToCore(esp_mqtt_run, "esp_mqtt", CONFIG_ESP_MQTT_TASK_STACK_SIZE, NULL,
                                            CONFIG_ESP_MQTT_TASK_STACK_PRIORITY, &esp_mqtt_task, 1);
   if (ret != pdPASS) {
     ESP_LOGW(ESP_MQTT_LOG_TAG, "esp_mqtt_start: failed to create task");
@@ -543,7 +546,7 @@ bool esp_mqtt_start(const char *host, const char *port, const char *client_id, c
     return false;
   }
 
-  // set local flag
+  // set flag
   esp_mqtt_running = true;
 
   // release mutex
