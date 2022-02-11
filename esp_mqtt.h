@@ -40,7 +40,7 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
 /**
  * Configure TLS connection.
  *
- * The specified CA certificate is not copied and must be available during the whole duration of the MQTT usage.
+ * The specified CA certificate is not copied and must be available during the whole duration of the TLS session.
  *
  * Note: This method must be called before `esp_mqtt_start`.
  *
@@ -68,11 +68,12 @@ void esp_mqtt_lwt(const char *topic, const char *payload, int qos, bool retained
 /**
  * Start the MQTT process.
  *
- * The background process will attempt to connect to the specified broker once a second until a connection can be
- * established. This process can be interrupted by calling `esp_mqtt_stop();`. If a connection has been established,
- * the status callback will be called with `ESP_MQTT_STATUS_CONNECTED`. From that moment on the functions
- * `esp_mqtt_subscribe`, `esp_mqtt_unsubscribe` and `esp_mqtt_publish` can be used to interact with the broker. If an
- * established connection fails, it will be retried until the process is stopped.
+ * The background process will continuously attempt to connect to the specified broker. If a connection has been
+ * established the status `ESP_MQTT_STATUS_CONNECTED` is emitted. Upon receiving this event the functions
+ * `esp_mqtt_subscribe`, `esp_mqtt_unsubscribe` and `esp_mqtt_publish` can be used to interact with the broker. If the
+ * connection is lost the status `ESP_MQTT_STATUS_DISCONNECTED` es emitted and the process restarted. The process can be
+ * stopped anytime by calling `esp_mqtt_stop()`. However, if an established connection is stopped, the status
+ * `ESP_MQTT_STATUS_DISCONNECTED` will not be emitted.
  *
  * @param host - The broker host.
  * @param port - The broker port.
@@ -87,10 +88,8 @@ bool esp_mqtt_start(const char *host, const char *port, const char *client_id, c
 /**
  * Subscribe to specified topic.
  *
- * When false is returned the current operation failed and any subsequent interactions will also fail. This can be used
- * to handle errors early. As soon as the background process unblocks the error will be detected, the connection closed
- * and the status callback invoked with `ESP_MQTT_STATUS_DISCONNECTED`. That callback then can simply call
- * `esp_mqtt_start()` to attempt an reconnection.
+ * When false is returned the current operation failed and any subsequent interactions will also fail until a new
+ * connection has been established and the status `ESP_MQTT_STATUS_CONNECTED` is emitted.
  *
  * @param topic - The topic.
  * @param qos - The qos level.
@@ -101,10 +100,8 @@ bool esp_mqtt_subscribe(const char *topic, int qos);
 /**
  * Unsubscribe from specified topic.
  *
- * When false is returned the current operation failed and any subsequent interactions will also fail. This can be used
- * to handle errors early. As soon as the background process unblocks the error will be detected, the connection closed
- * and the status callback invoked with `ESP_MQTT_STATUS_DISCONNECTED`. That callback then can simply call
- * `esp_mqtt_start()` to attempt an reconnection.
+ * When false is returned the current operation failed and any subsequent interactions will also fail until a new
+ * connection has been established and the status `ESP_MQTT_STATUS_CONNECTED` is emitted.
  *
  * @param topic - The topic.
  * @return Whether the operation was successful.
@@ -114,10 +111,8 @@ bool esp_mqtt_unsubscribe(const char *topic);
 /**
  * Publish bytes payload to specified topic.
  *
- * When false is returned the current operation failed and any subsequent interactions will also fail. This can be used
- * to handle errors early. As soon as the background process unblocks the error will be detected, the connection closed
- * and the status callback invoked with `ESP_MQTT_STATUS_DISCONNECTED`. That callback then can simply call
- * `esp_mqtt_start()` to attempt an reconnection.
+ * When false is returned the current operation failed and any subsequent interactions will also fail until a new
+ * connection has been established and the status `ESP_MQTT_STATUS_CONNECTED` is emitted.
  *
  * @param topic - The topic.
  * @param payload - The payload.
