@@ -1,21 +1,8 @@
-UNAME := $(shell uname)
-
-XTENSA_TOOLCHAIN := "xtensa-esp32-elf-linux64-1.22.0-97-gc752ad5-5.2.0.tar.gz"
-
-ifeq ($(UNAME), Darwin)
-XTENSA_TOOLCHAIN := "xtensa-esp32-elf-macos-1.22.0-97-gc752ad5-5.2.0.tar.gz"
-endif
-
-ESP_IDF_VERSION := "v3.3.5"
+ESP_IDF_VERSION := "v4.2.3"
 
 fmt:
 	clang-format -i ./*.c ./*.h -style="{BasedOnStyle: Google, ColumnLimit: 120, SortIncludes: false}"
 	clang-format -i ./test/main/*.c -style="{BasedOnStyle: Google, ColumnLimit: 120, SortIncludes: false}"
-
-test/xtensa-esp32-elf:
-	wget https://dl.espressif.com/dl/$(XTENSA_TOOLCHAIN)
-	cd test; tar -xzf ../$(XTENSA_TOOLCHAIN)
-	rm *.tar.gz
 
 test/esp-idf:
 	git clone --recursive  https://github.com/espressif/esp-idf.git test/esp-idf
@@ -26,32 +13,32 @@ update:
 	cd test/esp-idf; git fetch; git checkout $(ESP_IDF_VERSION)
 	cd test/esp-idf/; git submodule update --recursive --init
 
-defconfig: test/xtensa-esp32-elf test/esp-idf
-	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make defconfig
+test/tools:
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; cd test/esp-idf; ./install.sh esp32
 
-menuconfig: test/xtensa-esp32-elf test/esp-idf
-	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make menuconfig
+defconfig: test/esp-idf test/tools
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh; cd ./test; make defconfig
 
-erase: test/xtensa-esp32-elf test/esp-idf
-	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make erase_flash
+menuconfig:test/esp-idf test/tools
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh; cd ./test; make menuconfig
 
-clean: test/xtensa-esp32-elf test/esp-idf
-	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make clean
+erase: test/esp-idf test/tools
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh; cd ./test; make erase_flash
 
-build: test/xtensa-esp32-elf test/esp-idf
-	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make
+clean: test/esp-idf test/tools
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh; cd ./test; make clean
 
-flash: test/xtensa-esp32-elf test/esp-idf
-	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make flash
+build: test/esp-idf test/tools
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh; cd ./test; make
 
-monitor: test/xtensa-esp32-elf test/esp-idf test/components/esp-mqtt
-	export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; cd ./test; make monitor
+flash: test/esp-idf test/tools
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh;  cd ./test; make flash
 
-simple-monitor: test/xtensa-esp32-elf test/esp-idf
+monitor: test/esp-idf test/tools
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh;  cd ./test; make monitor
+
+simple-monitor:
 	@clear
 	miniterm.py /dev/cu.SLAB_USBtoUART 115200 --rts 0 --dtr 0 --raw --exit-char 99
-
-debug:
-	 export PATH=$(shell pwd)/test/xtensa-esp32-elf/bin:$$PATH; export IDF_PATH=$(shell pwd)/test/esp-idf; ./test/esp-idf/components/espcoredump/espcoredump.py info_corefile -t b64 -c ./test/dump.txt ./test/build/esp-mqtt.elf
 
 run: build flash monitor
