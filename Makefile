@@ -1,12 +1,12 @@
 SHELL := /bin/bash
 
-ESP_IDF_VERSION := "v4.2.3"
+ESP_IDF_VERSION := "v4.4"
 
 fmt:
 	clang-format -i ./*.c ./*.h -style="{BasedOnStyle: Google, ColumnLimit: 120, SortIncludes: false}"
 	clang-format -i ./test/main/*.c -style="{BasedOnStyle: Google, ColumnLimit: 120, SortIncludes: false}"
 
-test/esp-idf:
+prepare:
 	git clone --recursive  https://github.com/espressif/esp-idf.git test/esp-idf
 	cd test/esp-idf; git fetch; git checkout $(ESP_IDF_VERSION)
 	cd test/esp-idf/; git submodule update --recursive --init
@@ -15,28 +15,28 @@ update:
 	cd test/esp-idf; git fetch; git checkout $(ESP_IDF_VERSION)
 	cd test/esp-idf/; git submodule update --recursive --init
 
-test/tools:
+install:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; cd test/esp-idf; ./install.sh esp32
 
-defconfig: test/esp-idf test/tools
+defconfig:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; make defconfig
 
-menuconfig:test/esp-idf test/tools
+menuconfig:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; make menuconfig
 
-erase: test/esp-idf test/tools
+erase:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; make erase_flash
 
-clean: test/esp-idf test/tools
+clean:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; make clean
 
-build: test/esp-idf test/tools
+build:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; make
 
-flash: test/esp-idf test/tools
+flash:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh;  cd test; make flash
 
-monitor: test/esp-idf test/tools
+monitor:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh;  cd test; make monitor
 
 simple-monitor:
