@@ -10,7 +10,7 @@ jobs:
           submodules: recursive
       - name: Prepare
         run: sudo apt-get install python-is-python3 gperf -y
-      - name: Test
-        run: |
-          make test/esp-idf test/tools
-          make build
+      - name: Install
+        run: make test/esp-idf test/tools
+      - name: Build
+        run: make build
