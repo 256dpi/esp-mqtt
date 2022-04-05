@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 ESP_IDF_VERSION := "v4.2.3"
 
 fmt:
