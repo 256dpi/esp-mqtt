@@ -17,25 +17,25 @@ test/tools:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; cd test/esp-idf; ./install.sh esp32
 
 defconfig: test/esp-idf test/tools
-	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh; cd ./test; make defconfig
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; make defconfig
 
 menuconfig:test/esp-idf test/tools
-	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh; cd ./test; make menuconfig
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; make menuconfig
 
 erase: test/esp-idf test/tools
-	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh; cd ./test; make erase_flash
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; make erase_flash
 
 clean: test/esp-idf test/tools
-	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh; cd ./test; make clean
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; make clean
 
 build: test/esp-idf test/tools
-	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh; cd ./test; make
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; make
 
 flash: test/esp-idf test/tools
-	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh;  cd ./test; make flash
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh;  cd test; make flash
 
 monitor: test/esp-idf test/tools
-	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; source ./test/esp-idf/export.sh;  cd ./test; make monitor
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh;  cd test; make monitor
 
 simple-monitor:
 	@clear
