@@ -75,15 +75,17 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
 }
 
 lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *network, bool *connected, uint32_t timeout) {
-  // prepare set
+  // prepare sets
   fd_set set;
+  fd_set ex_set;
   FD_ZERO(&set);
+  FD_ZERO(&ex_set);
   FD_SET(network->socket, &set);
 
   // wait for data
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int result = lwip_select(network->socket + 1, NULL, &set, NULL, &t);
-  if (result < 0) {
+  int result = lwip_select(network->socket + 1, NULL, &set, &ex_set, &t);
+  if (result < 0 || FD_ISSET(network->socket, &ex_set)) {
     lwip_close(network->socket);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
@@ -111,15 +113,17 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network) {
 }
 
 lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *available, uint32_t timeout) {
-  // prepare set
+  // prepare sets
   fd_set set;
+  fd_set ex_set;
   FD_ZERO(&set);
+  FD_ZERO(&ex_set);
   FD_SET(network->socket, &set);
 
   // wait for data
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int result = lwip_select(network->socket + 1, &set, NULL, NULL, &t);
-  if (result < 0) {
+  int result = lwip_select(network->socket + 1, &set, NULL, &ex_set, &t);
+  if (result < 0 || FD_ISSET(network->socket, &ex_set)) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
