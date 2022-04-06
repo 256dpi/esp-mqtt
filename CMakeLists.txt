@@ -7,10 +7,12 @@ include_directories(
         test/build/include
         test/xtensa-esp32-elf/xtensa-esp32-elf/include
         test/esp-idf/components/esp32/include
+        test/esp-idf/components/esp_common/include
         test/esp-idf/components/esp_event/include
+        test/esp-idf/components/esp_netif/include
+        test/esp-idf/components/esp_wifi/include
         test/esp-idf/components/freertos/include
         test/esp-idf/components/log/include
-        test/esp-idf/components/tcpip_adapter/include
         test/esp-idf/components/lwip/port/esp32/include
         test/esp-idf/components/lwip/lwip/src/include
         test/esp-idf/components/nvs_flash/include
