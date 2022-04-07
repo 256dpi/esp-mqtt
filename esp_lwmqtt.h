@@ -45,7 +45,7 @@ void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *n);
 /**
  * Will set available to the available amount of data in the underlying network buffer.
  */
-lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *n, size_t *available, uint32_t timeout);
+lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *n, size_t *available);
 
 /**
  * Will wait for a socket until data is available or the timeout has been reached.

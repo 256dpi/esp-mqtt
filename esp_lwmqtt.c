@@ -81,6 +81,7 @@ lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *n, bool *connected, u
   FD_ZERO(&set);
   FD_ZERO(&ex_set);
   FD_SET(n->socket, &set);
+  FD_SET(n->socket, &ex_set);
 
   // wait for data
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
@@ -118,6 +119,7 @@ lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *n, bool *available,
   FD_ZERO(&set);
   FD_ZERO(&ex_set);
   FD_SET(n->socket, &set);
+  FD_SET(n->socket, &ex_set);
 
   // wait for data
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
@@ -132,22 +134,16 @@ lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *n, bool *available,
   return LWMQTT_SUCCESS;
 }
 
-lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *n, size_t *available, uint32_t timeout) {
-  // set timeout
-  struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int rc = setsockopt(n->socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&t, sizeof(t));
-  if (rc < 0) {
-    return LWMQTT_NETWORK_FAILED_READ;
-  }
-
+lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *n, size_t *available) {
   // check if socket is valid
-  int ret = read(n->socket, NULL, 0);
-  if (ret < 0 && errno != EAGAIN) {
+  char buf;
+  int ret = recv(n->socket, &buf, 1, MSG_PEEK | MSG_DONTWAIT);
+  if (ret <= 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
   // get the available bytes on the socket
-  rc = ioctl(n->socket, FIONREAD, available);
+  int rc = ioctl(n->socket, FIONREAD, available);
   if (rc < 0) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
@@ -168,9 +164,9 @@ lwmqtt_err_t esp_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len, siz
 
   // read from socket
   int bytes = read(n->socket, buffer, len);
-  if (bytes < 0 && errno == EAGAIN) {
+  if (bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
     return LWMQTT_SUCCESS;
-  } else if (bytes < 0) {
+  } else if (bytes <= 0) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
@@ -193,7 +189,7 @@ lwmqtt_err_t esp_lwmqtt_network_write(void *ref, uint8_t *buffer, size_t len, si
 
   // write to socket
   int bytes = write(n->socket, buffer, len);
-  if (bytes < 0 && errno == EAGAIN) {
+  if (bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
     return LWMQTT_SUCCESS;
   } else if (bytes < 0) {
     return LWMQTT_NETWORK_FAILED_WRITE;

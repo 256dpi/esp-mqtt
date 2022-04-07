@@ -109,6 +109,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_wait(esp_tls_lwmqtt_network_t *n, bool *conn
   FD_ZERO(&set);
   FD_ZERO(&ex_set);
   FD_SET(n->socket.fd, &set);
+  FD_SET(n->socket.fd, &ex_set);
 
   // wait for data
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
@@ -153,6 +154,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_select(esp_tls_lwmqtt_network_t *n, bool *av
   FD_ZERO(&set);
   FD_ZERO(&ex_set);
   FD_SET(n->socket.fd, &set);
+  FD_SET(n->socket.fd, &ex_set);
 
   // wait for data
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
@@ -181,6 +183,8 @@ lwmqtt_err_t esp_tls_lwmqtt_network_peek(esp_tls_lwmqtt_network_t *n, size_t *av
     esp_tls_log("mbedtls_net_set_nonblock", ret);
     return LWMQTT_NETWORK_FAILED_READ;
   }
+
+  // TODO: Directly peek on underlying socket?
 
   // check if socket is valid
   ret = mbedtls_ssl_read(&n->ssl, NULL, 0);

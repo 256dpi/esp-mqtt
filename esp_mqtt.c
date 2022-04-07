@@ -370,7 +370,7 @@ static void esp_mqtt_process() {
       if (esp_mqtt_use_tls) {
         err = esp_tls_lwmqtt_network_peek(&esp_mqtt_tls_network, &available_bytes, esp_mqtt_command_timeout);
       } else {
-        err = esp_lwmqtt_network_peek(&esp_mqtt_network, &available_bytes, esp_mqtt_command_timeout);
+        err = esp_lwmqtt_network_peek(&esp_mqtt_network, &available_bytes);
       }
 #else
       err = esp_lwmqtt_network_peek(&esp_mqtt_network, &available_bytes);
