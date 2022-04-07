@@ -134,6 +134,12 @@ lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *avai
 }
 
 lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *network, size_t *available) {
+  // check if socket is valid
+  int ret = read(network->socket, NULL, 0);
+  if (ret < 0 && errno != EAGAIN) {
+    return LWMQTT_NETWORK_FAILED_READ;
+  }
+
   // get the available bytes on the socket
   int rc = ioctl(network->socket, FIONREAD, available);
   if (rc < 0) {

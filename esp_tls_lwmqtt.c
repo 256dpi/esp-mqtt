@@ -185,7 +185,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_peek(esp_tls_lwmqtt_network_t *network, size
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
-  // get the available bytes on the socket
+  // check if socket is valid
   ret = mbedtls_ssl_read(&network->ssl, NULL, 0);
   if (ret < 0 && ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
     esp_tls_log("mbedtls_ssl_read", ret);
