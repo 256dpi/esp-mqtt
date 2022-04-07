@@ -22,9 +22,9 @@ int32_t esp_lwmqtt_timer_get(void *ref) {
   return (int32_t)t->deadline - (int32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
 
-lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *host, char *port) {
+lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *n, char *host, char *port) {
   // disconnect if not already the case
-  esp_lwmqtt_network_disconnect(network);
+  esp_lwmqtt_network_disconnect(n);
 
   // prepare hints
   struct addrinfo hints = {.ai_family = AF_INET, .ai_socktype = SOCK_STREAM};
@@ -37,34 +37,33 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
   }
 
   // create socket
-  network->socket = socket(res->ai_family, res->ai_socktype, 0);
-  if (network->socket < 0) {
+  n->socket = socket(res->ai_family, res->ai_socktype, 0);
+  if (n->socket < 0) {
     freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // disable nagle's algorithm
   int flag = 1;
-  r = setsockopt(network->socket, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(int));
+  r = setsockopt(n->socket, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(int));
   if (r < 0) {
-    close(network->socket);
+    close(n->socket);
     freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // set socket to non-blocking
-  int flags = fcntl(network->socket, F_GETFL, 0);
-  r = fcntl(network->socket, F_SETFL, flags | O_NONBLOCK);
+  r = fcntl(n->socket, F_SETFL, fcntl(n->socket, F_GETFL, 0) | O_NONBLOCK);
   if (r < 0) {
-    close(network->socket);
+    close(n->socket);
     freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // connect socket
-  r = connect(network->socket, res->ai_addr, res->ai_addrlen);
+  r = connect(n->socket, res->ai_addr, res->ai_addrlen);
   if (r < 0 && errno != EINPROGRESS) {
-    close(network->socket);
+    close(n->socket);
     freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
@@ -75,19 +74,19 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
   return LWMQTT_SUCCESS;
 }
 
-lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *network, bool *connected, uint32_t timeout) {
+lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *n, bool *connected, uint32_t timeout) {
   // prepare sets
   fd_set set;
   fd_set ex_set;
   FD_ZERO(&set);
   FD_ZERO(&ex_set);
-  FD_SET(network->socket, &set);
+  FD_SET(n->socket, &set);
 
   // wait for data
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int result = select(network->socket + 1, NULL, &set, &ex_set, &t);
-  if (result < 0 || FD_ISSET(network->socket, &ex_set)) {
-    close(network->socket);
+  int result = select(n->socket + 1, NULL, &set, &ex_set, &t);
+  if (result < 0 || FD_ISSET(n->socket, &ex_set)) {
+    close(n->socket);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
@@ -95,36 +94,35 @@ lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *network, bool *connec
   *connected = result > 0;
 
   // set socket to blocking
-  int flags = fcntl(network->socket, F_GETFL, 0);
-  int r = fcntl(network->socket, F_SETFL, flags & (~O_NONBLOCK));
+  int r = fcntl(n->socket, F_SETFL, fcntl(n->socket, F_GETFL, 0) & (~O_NONBLOCK));
   if (r < 0) {
-    close(network->socket);
+    close(n->socket);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   return LWMQTT_SUCCESS;
 }
 
-void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network) {
+void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *n) {
   // close socket if present
-  if (network->socket) {
-    close(network->socket);
-    network->socket = 0;
+  if (n->socket) {
+    close(n->socket);
+    n->socket = 0;
   }
 }
 
-lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *available, uint32_t timeout) {
+lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *n, bool *available, uint32_t timeout) {
   // prepare sets
   fd_set set;
   fd_set ex_set;
   FD_ZERO(&set);
   FD_ZERO(&ex_set);
-  FD_SET(network->socket, &set);
+  FD_SET(n->socket, &set);
 
   // wait for data
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int result = select(network->socket + 1, &set, NULL, &ex_set, &t);
-  if (result < 0 || FD_ISSET(network->socket, &ex_set)) {
+  int result = select(n->socket + 1, &set, NULL, &ex_set, &t);
+  if (result < 0 || FD_ISSET(n->socket, &ex_set)) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
@@ -134,15 +132,22 @@ lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *avai
   return LWMQTT_SUCCESS;
 }
 
-lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *network, size_t *available) {
+lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *n, size_t *available, uint32_t timeout) {
+  // set timeout
+  struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
+  int rc = setsockopt(n->socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&t, sizeof(t));
+  if (rc < 0) {
+    return LWMQTT_NETWORK_FAILED_READ;
+  }
+
   // check if socket is valid
-  int ret = read(network->socket, NULL, 0);
+  int ret = read(n->socket, NULL, 0);
   if (ret < 0 && errno != EAGAIN) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
   // get the available bytes on the socket
-  int rc = ioctl(network->socket, FIONREAD, available);
+  rc = ioctl(n->socket, FIONREAD, available);
   if (rc < 0) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
@@ -163,13 +168,10 @@ lwmqtt_err_t esp_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len, siz
 
   // read from socket
   int bytes = read(n->socket, buffer, len);
-  if (bytes < 0 && errno != EAGAIN) {
+  if (bytes < 0 && errno == EAGAIN) {
+    return LWMQTT_SUCCESS;
+  } else if (bytes < 0) {
     return LWMQTT_NETWORK_FAILED_READ;
-  }
-
-  // prevent counting down if error is EAGAIN
-  if (bytes < 0) {
-    bytes = 0;
   }
 
   // increment counter
@@ -191,13 +193,10 @@ lwmqtt_err_t esp_lwmqtt_network_write(void *ref, uint8_t *buffer, size_t len, si
 
   // write to socket
   int bytes = write(n->socket, buffer, len);
-  if (bytes < 0 && errno != EAGAIN) {
+  if (bytes < 0 && errno == EAGAIN) {
+    return LWMQTT_SUCCESS;
+  } else if (bytes < 0) {
     return LWMQTT_NETWORK_FAILED_WRITE;
-  }
-
-  // prevent counting down if error is EAGAIN
-  if (bytes < 0) {
-    bytes = 0;
   }
 
   // increment counter

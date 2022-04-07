@@ -30,27 +30,27 @@ typedef struct {
 /**
  * Initiate a connection to the specified remote hose.
  */
-lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *host, char *port);
+lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *n, char *host, char *port);
 
 /**
  * Wait until the socket is connected or a timeout has been reached.
  */
-lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *network, bool *connected, uint32_t timeout);
+lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *n, bool *connected, uint32_t timeout);
 
 /**
  * Terminate the connection.
  */
-void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *network);
+void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *n);
 
 /**
  * Will set available to the available amount of data in the underlying network buffer.
  */
-lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *network, size_t *available);
+lwmqtt_err_t esp_lwmqtt_network_peek(esp_lwmqtt_network_t *n, size_t *available, uint32_t timeout);
 
 /**
  * Will wait for a socket until data is available or the timeout has been reached.
  */
-lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *available, uint32_t timeout);
+lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *n, bool *available, uint32_t timeout);
 
 /**
  * The lwmqtt network read callback for the esp platform.
