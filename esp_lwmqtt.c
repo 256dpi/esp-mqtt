@@ -48,6 +48,7 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *network, char *hos
   r = setsockopt(network->socket, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(int));
   if (r < 0) {
     close(network->socket);
+    freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
