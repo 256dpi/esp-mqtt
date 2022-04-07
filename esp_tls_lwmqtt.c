@@ -115,7 +115,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_wait(esp_tls_lwmqtt_network_t *network, bool
 
   // wait for data
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int result = lwip_select(network->socket.fd + 1, NULL, &set, &ex_set, &t);
+  int result = select(network->socket.fd + 1, NULL, &set, &ex_set, &t);
   if (result < 0 || FD_ISSET(network->socket.fd, &ex_set)) {
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
@@ -159,7 +159,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_select(esp_tls_lwmqtt_network_t *network, bo
 
   // wait for data
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int result = lwip_select(network->socket.fd + 1, &set, NULL, &ex_set, &t);
+  int result = select(network->socket.fd + 1, &set, NULL, &ex_set, &t);
   if (result < 0 || FD_ISSET(network->socket.fd, &ex_set)) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
@@ -173,7 +173,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_select(esp_tls_lwmqtt_network_t *network, bo
 lwmqtt_err_t esp_tls_lwmqtt_network_peek(esp_tls_lwmqtt_network_t *network, size_t *available, uint32_t timeout) {
   // set timeout
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int rc = lwip_setsockopt(network->socket.fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&t, sizeof(t));
+  int rc = setsockopt(network->socket.fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&t, sizeof(t));
   if (rc < 0) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
@@ -204,7 +204,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len,
 
   // set timeout
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int rc = lwip_setsockopt(network->socket.fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&t, sizeof(t));
+  int rc = setsockopt(network->socket.fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&t, sizeof(t));
   if (rc < 0) {
     return LWMQTT_NETWORK_FAILED_READ;
   }
@@ -230,7 +230,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_write(void *ref, uint8_t *buffer, size_t len
 
   // set timeout
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
-  int rc = lwip_setsockopt(network->socket.fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&t, sizeof(t));
+  int rc = setsockopt(network->socket.fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&t, sizeof(t));
   if (rc < 0) {
     return LWMQTT_NETWORK_FAILED_WRITE;
   }
