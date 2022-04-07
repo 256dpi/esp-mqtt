@@ -18,7 +18,7 @@ update:
 install:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; cd test/esp-idf; ./install.sh esp32
 
-menuconfig:
+config:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; idf.py menuconfig
 
 erase:
