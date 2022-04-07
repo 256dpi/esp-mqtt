@@ -104,6 +104,11 @@ bool esp_mqtt_tls(bool enable, bool verify, const uint8_t *ca_buf, size_t ca_len
   // acquire mutex
   ESP_MQTT_LOCK_MAIN();
 
+  // free existing buffer
+  if (esp_mqtt_tls_network.ca_buf) {
+    free(esp_mqtt_tls_network.ca_buf);
+  }
+
   // disable if requested
   if (!enable) {
     esp_mqtt_use_tls = false;
@@ -124,8 +129,16 @@ bool esp_mqtt_tls(bool enable, bool verify, const uint8_t *ca_buf, size_t ca_len
   // set configuration
   esp_mqtt_use_tls = true;
   esp_mqtt_tls_network.verify = verify;
-  esp_mqtt_tls_network.ca_buf = (uint8_t *)ca_buf;
-  esp_mqtt_tls_network.ca_len = ca_len;
+  esp_mqtt_tls_network.ca_buf = NULL;
+  esp_mqtt_tls_network.ca_len = 0;
+
+  // copy buffer
+  if (ca_buf) {
+    esp_mqtt_tls_network.ca_len = ca_len + 1;
+    esp_mqtt_tls_network.ca_buf = malloc(ca_len + 1);
+    memcpy(esp_mqtt_tls_network.ca_buf, ca_buf, ca_len);
+    esp_mqtt_tls_network.ca_buf[ca_len] = 0;
+  }
 
   // release mutex
   ESP_MQTT_UNLOCK_MAIN();
