@@ -5,6 +5,12 @@
 
 #include "esp_tls_lwmqtt.h"
 
+static void esp_tls_log(const char *name, int ret) {
+  char str[256];
+  mbedtls_strerror(ret, str, 256);
+  ESP_LOGE("esp-mqtt", "%s: %s (%d)", name, str, ret);
+}
+
 lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, char *host, char *port) {
   // disconnect if not already the case
   esp_tls_lwmqtt_network_disconnect(network);
@@ -20,6 +26,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   // setup entropy source
   int ret = mbedtls_ctr_drbg_seed(&network->ctr_drbg, mbedtls_entropy_func, &network->entropy, NULL, 0);
   if (ret != 0) {
+    esp_tls_log("mbedtls_ctr_drbg_seed", ret);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
@@ -27,6 +34,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   if (network->ca_buf) {
     ret = mbedtls_x509_crt_parse(&network->cacert, network->ca_buf, network->ca_len);
     if (ret != 0) {
+      esp_tls_log("mbedtls_x509_crt_parse", ret);
       return LWMQTT_NETWORK_FAILED_CONNECT;
     }
   }
@@ -34,6 +42,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   // connect socket
   ret = mbedtls_net_connect(&network->socket, host, port, MBEDTLS_NET_PROTO_TCP);
   if (ret != 0) {
+    esp_tls_log("mbedtls_net_connect", ret);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
@@ -41,6 +50,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   ret = mbedtls_ssl_config_defaults(&network->conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM,
                                     MBEDTLS_SSL_PRESET_DEFAULT);
   if (ret != 0) {
+    esp_tls_log("mbedtls_ssl_config_defaults", ret);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
@@ -58,12 +68,14 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   // setup ssl context
   ret = mbedtls_ssl_setup(&network->ssl, &network->conf);
   if (ret != 0) {
+    esp_tls_log("mbedtls_ssl_setup",  ret);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
   // set hostname
   ret = mbedtls_ssl_set_hostname(&network->ssl, host);
   if (ret != 0) {
+    esp_tls_log("mbedtls_ssl_set_hostname", ret);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
@@ -84,7 +96,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *network, c
   ret = mbedtls_ssl_handshake(&network->ssl);
   if (ret != 0) {
     if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
-      ESP_LOGE("mbedtls_ssl_handshake", "ERORR: -0x%x", -ret);
+      esp_tls_log("mbedtls_ssl_handshake", ret);
     }
 
     return LWMQTT_NETWORK_FAILED_CONNECT;
@@ -114,6 +126,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_wait(esp_tls_lwmqtt_network_t *network, bool
   // set socket to blocking
   int ret = mbedtls_net_set_block(&network->socket);
   if (ret < 0) {
+    esp_tls_log("mbedtls_net_set_block", ret);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
@@ -168,12 +181,14 @@ lwmqtt_err_t esp_tls_lwmqtt_network_peek(esp_tls_lwmqtt_network_t *network, size
   // set socket to non blocking
   int ret = mbedtls_net_set_nonblock(&network->socket);
   if (ret != 0) {
-    return LWMQTT_NETWORK_FAILED_CONNECT;
+    esp_tls_log("mbedtls_net_set_nonblock", ret);
+    return LWMQTT_NETWORK_FAILED_READ;
   }
 
   // get the available bytes on the socket
   ret = mbedtls_ssl_read(&network->ssl, NULL, 0);
   if (ret < 0 && ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+    esp_tls_log("mbedtls_ssl_read", ret);
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
@@ -199,6 +214,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len,
   if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
     return LWMQTT_SUCCESS;
   } else if (ret <= 0) {
+    esp_tls_log("mbedtls_ssl_read", ret);
     return LWMQTT_NETWORK_FAILED_READ;
   }
 
@@ -224,6 +240,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_write(void *ref, uint8_t *buffer, size_t len
   if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
     return LWMQTT_SUCCESS;
   } else if (ret < 0) {
+    esp_tls_log("mbedtls_ssl_write", ret);
     return LWMQTT_NETWORK_FAILED_WRITE;
   }
 
