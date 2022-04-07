@@ -198,7 +198,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_peek(esp_tls_lwmqtt_network_t *network, size
   return LWMQTT_SUCCESS;
 }
 
-lwmqtt_err_t esp_tls_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len, size_t *read, uint32_t timeout) {
+lwmqtt_err_t esp_tls_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len, size_t *received, uint32_t timeout) {
   // cast network reference
   esp_tls_lwmqtt_network_t *network = (esp_tls_lwmqtt_network_t *)ref;
 
@@ -219,7 +219,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_read(void *ref, uint8_t *buffer, size_t len,
   }
 
   // increment counter
-  *read += ret;
+  *received += ret;
 
   return LWMQTT_SUCCESS;
 }

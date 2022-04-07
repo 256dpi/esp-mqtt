@@ -55,7 +55,7 @@ lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *network, bool *avai
 /**
  * The lwmqtt network read callback for the esp platform.
  */
-lwmqtt_err_t esp_lwmqtt_network_read(void *ref, uint8_t *buf, size_t len, size_t *read, uint32_t timeout);
+lwmqtt_err_t esp_lwmqtt_network_read(void *ref, uint8_t *buf, size_t len, size_t *received, uint32_t timeout);
 
 /**
  * The lwmqtt network write callback for the esp platform.
