@@ -21,7 +21,8 @@ typedef void (*esp_mqtt_status_callback_t)(esp_mqtt_status_t);
 /**
  * The message callback.
  */
-typedef void (*esp_mqtt_message_callback_t)(const char *topic, uint8_t *payload, size_t len);
+typedef void (*esp_mqtt_message_callback_t)(const char *topic, const uint8_t *payload, size_t len, int qos,
+                                            bool retained);
 
 /**
  * Initialize the MQTT management system.
@@ -36,7 +37,6 @@ typedef void (*esp_mqtt_message_callback_t)(const char *topic, uint8_t *payload,
 void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, size_t buffer_size,
                    int command_timeout);
 
-#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
 /**
  * Configure TLS connection.
  *
@@ -51,7 +51,6 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
  * @return Whether TLS configuration was successful.
  */
 bool esp_mqtt_tls(bool enable, bool verify, const uint8_t *ca_buf, size_t ca_len);
-#endif
 
 /**
  * Configure Last Will and Testament.
@@ -121,7 +120,7 @@ bool esp_mqtt_unsubscribe(const char *topic);
  * @param retained - The retained flag.
  * @return Whether the operation was successful.
  */
-bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, bool retained);
+bool esp_mqtt_publish(const char *topic, const uint8_t *payload, size_t len, int qos, bool retained);
 
 /**
  * Stop the MQTT process.

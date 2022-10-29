@@ -30,7 +30,7 @@ static void connect() {
   use_tls = !use_tls;
 
   // start mqtt
-  ESP_LOGI("test", "starting mqtt with tls=%d", use_tls);
+  ESP_LOGI("test", "starting mqtt (tls=%d)", use_tls);
   esp_mqtt_tls(use_tls, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
   esp_mqtt_start(MQTT_HOST, use_tls ? MQTTS_PORT : MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS);
 }
@@ -93,8 +93,8 @@ static void status_callback(esp_mqtt_status_t status) {
   }
 }
 
-static void message_callback(const char *topic, uint8_t *payload, size_t len) {
-  ESP_LOGI("test", "incoming: %s => %s (%d)", topic, payload, (int)len);
+static void message_callback(const char *topic, const uint8_t *payload, size_t len, int qos, bool retained) {
+  ESP_LOGI("test", "incoming: %s => %s (len=%d qos=%d ret=%d)", topic, payload, (int)len, qos, retained);
 }
 
 void app_main() {

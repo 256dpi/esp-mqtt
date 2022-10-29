@@ -181,7 +181,8 @@ static void esp_mqtt_dispatch_events() {
   while (xQueueReceive(esp_mqtt_event_queue, &evt, 0) == pdTRUE) {
     // call callback if existing
     if (esp_mqtt_message_callback) {
-      esp_mqtt_message_callback(evt->topic.data, evt->message.payload, evt->message.payload_len);
+      esp_mqtt_message_callback(evt->topic.data, evt->message.payload, evt->message.payload_len, (int)evt->message.qos,
+                                evt->message.retained);
     }
 
     // free event
@@ -621,7 +622,7 @@ bool esp_mqtt_unsubscribe(const char *topic) {
   return true;
 }
 
-bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, bool retained) {
+bool esp_mqtt_publish(const char *topic, const uint8_t *payload, size_t len, int qos, bool retained) {
   // acquire mutex
   ESP_MQTT_LOCK_MAIN();
 
@@ -636,7 +637,7 @@ bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, 
   lwmqtt_message_t message;
   message.qos = (lwmqtt_qos_t)qos;
   message.retained = retained;
-  message.payload = payload;
+  message.payload = (uint8_t*)payload;
   message.payload_len = len;
 
   // publish message
