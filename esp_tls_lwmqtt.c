@@ -88,7 +88,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *n, char *h
     if (flags != 0) {
       char verify_buf[100] = {0};
       mbedtls_x509_crt_verify_info(verify_buf, sizeof(verify_buf), "  ! ", flags);
-      ESP_LOGE("esp-mqtt", "%mbedtls_ssl_get_verify_result: %s (%d)", verify_buf, flags);
+      ESP_LOGE("esp-mqtt", "%mbedtls_ssl_get_verify_result: %s (%ld)", verify_buf, flags);
     }
   }
 

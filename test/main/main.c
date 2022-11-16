@@ -58,16 +58,16 @@ static void restart(void *_) {
 static void event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
   if (event_base == WIFI_EVENT) {
     switch (event_id) {
-      case SYSTEM_EVENT_STA_START:
+      case WIFI_EVENT_STA_START:
         // connect to ap
         ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_connect());
 
         break;
 
-      case SYSTEM_EVENT_STA_GOT_IP:
+      case IP_EVENT_STA_GOT_IP:
         break;
 
-      case SYSTEM_EVENT_STA_DISCONNECTED:
+      case WIFI_EVENT_STA_DISCONNECTED:
         // reconnect Wi-Fi
         ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_connect());
 
@@ -136,6 +136,6 @@ void app_main() {
   esp_mqtt_init(status_callback, message_callback, 256, 2000, 1);
 
   // create tasks
-  xTaskCreatePinnedToCore(process, "process", 2048, NULL, 10, NULL, 1);
-  xTaskCreatePinnedToCore(restart, "restart", 2048, NULL, 10, NULL, 1);
+  xTaskCreatePinnedToCore(process, "process", 4096, NULL, 10, NULL, 1);
+  xTaskCreatePinnedToCore(restart, "restart", 4066, NULL, 10, NULL, 1);
 }

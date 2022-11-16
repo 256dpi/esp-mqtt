@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-ESP_IDF_VERSION := "v4.4"
+ESP_IDF_VERSION := "v5.0-rc1"
 
 fmt:
 	clang-format -i ./*.c ./*.h -style="{BasedOnStyle: Google, ColumnLimit: 120, SortIncludes: false}"
