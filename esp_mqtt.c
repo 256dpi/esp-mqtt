@@ -70,6 +70,7 @@ static esp_lwmqtt_timer_t esp_mqtt_timer1, esp_mqtt_timer2;
 
 static void *esp_mqtt_write_buffer;
 static void *esp_mqtt_read_buffer;
+static int esp_mqtt_core;
 
 static QueueHandle_t esp_mqtt_event_queue = NULL;
 
@@ -80,12 +81,15 @@ typedef struct {
 } esp_mqtt_event_t;
 
 void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, size_t buffer_size,
-                   int command_timeout) {
+                   int command_timeout, int core) {
   // set callbacks
   esp_mqtt_status_callback = scb;
   esp_mqtt_message_callback = mcb;
+
+  // set settings
   esp_mqtt_buffer_size = buffer_size;
   esp_mqtt_command_timeout = (uint32_t)command_timeout;
+  esp_mqtt_core = core;
 
   // allocate buffers
   esp_mqtt_write_buffer = malloc((size_t)buffer_size);
@@ -553,7 +557,7 @@ bool esp_mqtt_start(const char *host, const char *port, const char *client_id, c
   // create mqtt thread
   ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_start: create task");
   BaseType_t ret = xTaskCreatePinnedToCore(esp_mqtt_run, "esp_mqtt", CONFIG_ESP_MQTT_TASK_STACK, NULL,
-                                           CONFIG_ESP_MQTT_TASK_PRIORITY, &esp_mqtt_task, CONFIG_ESP_MQTT_TASK_CORE);
+                                           CONFIG_ESP_MQTT_TASK_PRIORITY, &esp_mqtt_task, esp_mqtt_core);
   if (ret != pdPASS) {
     ESP_LOGW(ESP_MQTT_LOG_TAG, "esp_mqtt_start: failed to create task");
     ESP_MQTT_UNLOCK_MAIN();

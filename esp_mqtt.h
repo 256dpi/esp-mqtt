@@ -33,9 +33,10 @@ typedef void (*esp_mqtt_message_callback_t)(const char *topic, const uint8_t *pa
  * @param mcb - The message callback.
  * @param buffer_size - The read and write buffer size.
  * @param command_timeout - The command timeout.
+ * @param core - The core to run the background task on.
  */
 void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb, size_t buffer_size,
-                   int command_timeout);
+                   int command_timeout, int core);
 
 /**
  * Configure TLS connection.

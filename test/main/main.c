@@ -133,7 +133,7 @@ void app_main() {
   ESP_ERROR_CHECK(esp_wifi_start());
 
   // initialize mqtt
-  esp_mqtt_init(status_callback, message_callback, 256, 2000);
+  esp_mqtt_init(status_callback, message_callback, 256, 2000, 1);
 
   // create tasks
   xTaskCreatePinnedToCore(process, "process", 2048, NULL, 10, NULL, 1);
