@@ -20,6 +20,11 @@ config ESP_MQTT_TASK_STACK_PRIORITY
     depends on ESP_MQTT_ENABLED
     default 5
 
+config ESP_MQTT_TASK_CORE
+    int "MQTT background process task core"
+    depends on ESP_MQTT_ENABLED
+    default 1
+
 config ESP_MQTT_EVENT_QUEUE_SIZE
     int "MQTT event queue size"
     depends on ESP_MQTT_ENABLED

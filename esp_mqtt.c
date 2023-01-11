@@ -553,7 +553,7 @@ bool esp_mqtt_start(const char *host, const char *port, const char *client_id, c
   // create mqtt thread
   ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_start: create task");
   BaseType_t ret = xTaskCreatePinnedToCore(esp_mqtt_run, "esp_mqtt", CONFIG_ESP_MQTT_TASK_STACK_SIZE, NULL,
-                                           CONFIG_ESP_MQTT_TASK_STACK_PRIORITY, &esp_mqtt_task, 1);
+                                           CONFIG_ESP_MQTT_TASK_STACK_PRIORITY, &esp_mqtt_task, CONFIG_ESP_MQTT_TASK_CORE);
   if (ret != pdPASS) {
     ESP_LOGW(ESP_MQTT_LOG_TAG, "esp_mqtt_start: failed to create task");
     ESP_MQTT_UNLOCK_MAIN();
