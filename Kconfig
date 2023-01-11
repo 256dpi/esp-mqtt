@@ -8,14 +8,14 @@ config ESP_MQTT_ENABLED
         This is currently only used to enforce the selection of LWIP_SO_RCVBUF.
         Disabling the component does not actually disable something.
 
-config ESP_MQTT_TASK_STACK_SIZE
-    int "MQTT background process task stack size"
+config ESP_MQTT_TASK_STACK
+    int "MQTT background process task stack"
         depends on ESP_MQTT_ENABLED
     default 9216
     help
         Specify at least 9216 if TLS is used and at least 4096 otherwise.
 
-config ESP_MQTT_TASK_STACK_PRIORITY
+config ESP_MQTT_TASK_PRIORITY
     int "MQTT background process task priority"
     depends on ESP_MQTT_ENABLED
     default 5
