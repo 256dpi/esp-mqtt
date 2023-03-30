@@ -266,7 +266,7 @@ static bool esp_mqtt_process_connect() {
   }
 
   // setup connect data
-  lwmqtt_options_t options = lwmqtt_default_options;
+  lwmqtt_connect_options_t options = lwmqtt_default_connect_options;
   options.keep_alive = 10;
   options.client_id = lwmqtt_string(esp_mqtt_config.client_id);
   options.username = lwmqtt_string(esp_mqtt_config.username);
@@ -280,9 +280,8 @@ static bool esp_mqtt_process_connect() {
   will.payload = lwmqtt_string(esp_mqtt_lwt_config.payload);
 
   // attempt connection
-  lwmqtt_return_code_t return_code;
   err =
-      lwmqtt_connect(&esp_mqtt_client, options, will.topic.len ? &will : NULL, &return_code, esp_mqtt_command_timeout);
+      lwmqtt_connect(&esp_mqtt_client, &options, will.topic.len ? &will : NULL, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_connect: %d", err);
     return false;
@@ -645,7 +644,8 @@ bool esp_mqtt_publish(const char *topic, const uint8_t *payload, size_t len, int
   message.payload_len = len;
 
   // publish message
-  lwmqtt_err_t err = lwmqtt_publish(&esp_mqtt_client, lwmqtt_string(topic), message, esp_mqtt_command_timeout);
+  lwmqtt_err_t err = lwmqtt_publish(&esp_mqtt_client, NULL, lwmqtt_string(topic), message, esp_mqtt_command_timeout);
+    //does this need to adapt for higher QoS and dupe packets automatically if needed?
   if (err != LWMQTT_SUCCESS) {
     esp_mqtt_error = true;
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_publish: %d", err);
