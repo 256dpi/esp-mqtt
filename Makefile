@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-ESP_IDF_VERSION := "v5.0-rc1"
+ESP_IDF_VERSION := "v5.1.1"
 
 fmt:
 	clang-format -i ./*.c ./*.h -style="{BasedOnStyle: Google, ColumnLimit: 120, SortIncludes: false}"
@@ -20,6 +20,10 @@ install:
 
 config:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; idf.py menuconfig
+
+reconfigure:
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; idf.py reconfigure
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; idf.py fullclean
 
 erase:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; idf.py erase-flash
