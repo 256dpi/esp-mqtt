@@ -1,26 +1,14 @@
 #ifndef ESP_TLS_LWMQTT_H
 #define ESP_TLS_LWMQTT_H
 
-#include <esp_log.h>
 #include <lwmqtt.h>
-#include <mbedtls/ctr_drbg.h>
-#include <mbedtls/entropy.h>
-#include <mbedtls/error.h>
-#include <mbedtls/net_sockets.h>
-#include <mbedtls/platform.h>
-#include <mbedtls/ssl.h>
-#include <sdkconfig.h>
+#include <esp_tls.h>
 
 /**
  * The tls lwmqtt network object for the esp platform.
  */
 typedef struct {
-  mbedtls_entropy_context entropy;
-  mbedtls_ctr_drbg_context ctr_drbg;
-  mbedtls_ssl_context ssl;
-  mbedtls_ssl_config conf;
-  mbedtls_x509_crt cacert;
-  mbedtls_net_context socket;
+  esp_tls_t *tls;
   uint8_t *ca_buf;
   size_t ca_len;
   bool verify;
@@ -61,4 +49,4 @@ lwmqtt_err_t esp_tls_lwmqtt_network_read(void *ref, uint8_t *buf, size_t len, si
  */
 lwmqtt_err_t esp_tls_lwmqtt_network_write(void *ref, uint8_t *buf, size_t len, size_t *sent, uint32_t timeout);
 
-#endif  // ESP_LWMQTT_H
+#endif  // ESP_TLS_LWMQTT_H
