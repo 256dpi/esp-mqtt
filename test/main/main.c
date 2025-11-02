@@ -19,7 +19,7 @@
 #define PUBLISH_INTERVAL 1000
 #define RESTART_INTERVAL 20000
 
-// openssl s_client -showcerts -connect garage.cloud.shiftr.io:8883 -servername garage.cloud.shiftr.io
+// openssl s_client -showcerts -connect public.cloud.shiftr.io:8883 -servername public.cloud.shiftr.io
 extern const uint8_t server_root_cert_pem_start[] asm("_binary_server_root_cert_pem_start");
 extern const uint8_t server_root_cert_pem_end[] asm("_binary_server_root_cert_pem_end");
 

@@ -370,7 +370,6 @@ static void esp_mqtt_process() {
     if (available) {
       // get available bytes
       size_t available_bytes = 0;
-
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
       if (esp_mqtt_use_tls) {
         err = esp_tls_lwmqtt_network_peek(&esp_mqtt_tls_network, &available_bytes, esp_mqtt_command_timeout);
@@ -380,7 +379,6 @@ static void esp_mqtt_process() {
 #else
       err = esp_lwmqtt_network_peek(&esp_mqtt_network, &available_bytes);
 #endif
-
       if (err != LWMQTT_SUCCESS) {
         ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_peek: %d", err);
         ESP_MQTT_UNLOCK_MAIN();
@@ -641,7 +639,7 @@ bool esp_mqtt_publish(const char *topic, const uint8_t *payload, size_t len, int
   lwmqtt_message_t message;
   message.qos = (lwmqtt_qos_t)qos;
   message.retained = retained;
-  message.payload = (uint8_t*)payload;
+  message.payload = (uint8_t *)payload;
   message.payload_len = len;
 
   // publish message
