@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
 TARGET := "esp32s3"
-ESP_IDF_VERSION := "v5.2.2"
+ESP_IDF_VERSION := "v5.4.3"
 
 fmt:
 	clang-format -i ./*.c ./*.h -style="{BasedOnStyle: Google, ColumnLimit: 120, SortIncludes: false}"
