@@ -35,4 +35,11 @@ config ESP_MQTT_TLS_ENABLE
    help
         You can deactivate TLS to save space in memory and flash.
 
+config ESP_MQTT_TLS_CERTS
+    bool "Enable TLS certificates"
+    depends on ESP_MQTT_TLS_ENABLE
+    default y
+    help
+        Enable this option to use the bundled certificates for TLS connection.
+
 endmenu

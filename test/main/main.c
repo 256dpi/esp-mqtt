@@ -25,13 +25,21 @@ extern const uint8_t server_root_cert_pem_end[] asm("_binary_server_root_cert_pe
 
 static void connect() {
   static bool use_tls = false;
+  static bool use_bundle = false;
 
-  // cycle use tls
+  // cycle use tls and bundle
   use_tls = !use_tls;
+  if (use_tls) {
+    use_bundle = !use_bundle;
+  }
 
   // start mqtt
-  ESP_LOGI("test", "starting mqtt (tls=%d)", use_tls);
-  esp_mqtt_tls(use_tls, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
+  ESP_LOGI("test", "starting mqtt (tls=%d bundle=%d)", use_tls, use_bundle);
+  if (use_bundle) {
+    esp_mqtt_tls(use_tls, true, NULL, 0);
+  } else {
+    esp_mqtt_tls(use_tls, true, server_root_cert_pem_start, server_root_cert_pem_end - server_root_cert_pem_start);
+  }
   esp_mqtt_start(MQTT_HOST, use_tls ? MQTTS_PORT : MQTT_PORT, "esp-mqtt", MQTT_USER, MQTT_PASS);
 }
 

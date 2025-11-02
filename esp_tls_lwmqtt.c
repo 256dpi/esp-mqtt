@@ -2,6 +2,7 @@
 #include <esp_log.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <esp_crt_bundle.h>
 
 #include "esp_tls_lwmqtt.h"
 
@@ -42,6 +43,9 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *n, char *h
       .cacert_buf = n->ca_buf,
       .cacert_bytes = n->ca_len,
       .skip_common_name = !n->verify,
+#ifdef CONFIG_ESP_MQTT_TLS_CERTS
+      .crt_bundle_attach = n->ca_buf == NULL ? esp_crt_bundle_attach : NULL,
+#endif
   };
 
   // allocate TLS context
