@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 
+TARGET := "esp32s3"
 ESP_IDF_VERSION := "v5.2.2"
 
 fmt:
@@ -16,12 +17,13 @@ update:
 	cd test/esp-idf/; git submodule update --recursive --init
 
 install:
-	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; cd test/esp-idf; ./install.sh esp32
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; cd test/esp-idf; ./install.sh $(TARGET)
 
 config:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; idf.py menuconfig
 
 reconfigure:
+	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; idf.py set-target $(TARGET)
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; idf.py reconfigure
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; . test/esp-idf/export.sh; cd test; idf.py fullclean
 
