@@ -121,6 +121,7 @@ lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *n, bool *connected, u
 }
 
 void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *n) {
+  // close socket
   esp_lwmqtt_close_socket(n);
 }
 
