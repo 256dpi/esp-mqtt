@@ -40,6 +40,7 @@ lwmqtt_err_t esp_tls_lwmqtt_network_connect(esp_tls_lwmqtt_network_t *n, char *h
   // build TLS configuration
   esp_tls_cfg_t cfg = {
       .timeout_ms = 10000,
+      .non_block = true,
       .cacert_buf = n->ca_buf,
       .cacert_bytes = n->ca_len,
       .skip_common_name = !n->verify,
