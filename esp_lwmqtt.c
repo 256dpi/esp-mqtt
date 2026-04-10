@@ -98,8 +98,17 @@ lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *n, bool *connected, u
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
-  // set whether socket is connected
-  *connected = result > 0;
+  // check the connect result on a writable socket
+  *connected = false;
+  if (result > 0 && FD_ISSET(n->socket, &set)) {
+    int err = 0;
+    socklen_t len = sizeof(err);
+    if (getsockopt(n->socket, SOL_SOCKET, SO_ERROR, &err, &len) < 0 || err != 0) {
+      esp_lwmqtt_close_socket(n);
+      return LWMQTT_NETWORK_FAILED_CONNECT;
+    }
+    *connected = true;
+  }
 
   // set socket to blocking
   int r = fcntl(n->socket, F_SETFL, fcntl(n->socket, F_GETFL, 0) & (~O_NONBLOCK));
