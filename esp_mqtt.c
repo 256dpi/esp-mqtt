@@ -101,6 +101,13 @@ void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t m
 
   // create queue
   esp_mqtt_event_queue = xQueueCreate(CONFIG_ESP_MQTT_EVENT_QUEUE_SIZE, sizeof(esp_mqtt_event_t *));
+
+  // check allocations
+  if (!esp_mqtt_write_buffer || !esp_mqtt_read_buffer || !esp_mqtt_main_mutex || !esp_mqtt_select_mutex ||
+      !esp_mqtt_event_queue) {
+    ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_mqtt_init: initialization failed");
+    ESP_ERROR_CHECK(ESP_FAIL);
+  }
 }
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
@@ -147,6 +154,10 @@ bool esp_mqtt_tls(bool enable, bool verify, const uint8_t *ca_buf, size_t ca_len
 static void esp_mqtt_message_handler(lwmqtt_client_t *client, void *ref, lwmqtt_string_t topic, lwmqtt_message_t msg) {
   // allocate buffer
   void *buffer = malloc(sizeof(esp_mqtt_event_t) + (size_t)topic.len + 1 + msg.payload_len + 1);
+  if (!buffer) {
+    ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_mqtt_message_handler: out of memory");
+    return;
+  }
 
   // prepare message
   esp_mqtt_event_t *evt = buffer;
