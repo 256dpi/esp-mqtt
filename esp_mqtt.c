@@ -198,6 +198,18 @@ static void esp_mqtt_dispatch_events() {
   }
 }
 
+static void esp_mqtt_network_disconnect() {
+#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
+  if (esp_mqtt_use_tls) {
+    esp_tls_lwmqtt_network_disconnect(&esp_mqtt_tls_network);
+  } else {
+    esp_lwmqtt_network_disconnect(&esp_mqtt_network);
+  }
+#else
+  esp_lwmqtt_network_disconnect(&esp_mqtt_network);
+#endif
+}
+
 static bool esp_mqtt_process_connect() {
   // initialize the client
   lwmqtt_init(&esp_mqtt_client, esp_mqtt_write_buffer, esp_mqtt_buffer_size, esp_mqtt_read_buffer,
@@ -255,6 +267,9 @@ static bool esp_mqtt_process_connect() {
 
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "esp_lwmqtt_network_wait: %d", err);
+    ESP_MQTT_UNLOCK_SELECT();
+    ESP_MQTT_LOCK_MAIN();
+    esp_mqtt_network_disconnect();
     return false;
   }
 
@@ -266,6 +281,7 @@ static bool esp_mqtt_process_connect() {
 
   // return if not connected
   if (!connected) {
+    esp_mqtt_network_disconnect();
     return false;
   }
 
@@ -289,6 +305,7 @@ static bool esp_mqtt_process_connect() {
       lwmqtt_connect(&esp_mqtt_client, options, will.topic.len ? &will : NULL, &return_code, esp_mqtt_command_timeout);
   if (err != LWMQTT_SUCCESS) {
     ESP_LOGE(ESP_MQTT_LOG_TAG, "lwmqtt_connect: %d", err);
+    esp_mqtt_network_disconnect();
     return false;
   }
 
@@ -419,16 +436,8 @@ static void esp_mqtt_process() {
   // acquire mutex
   ESP_MQTT_LOCK_MAIN();
 
-// disconnect network
-#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-  if (esp_mqtt_use_tls) {
-    esp_tls_lwmqtt_network_disconnect(&esp_mqtt_tls_network);
-  } else {
-    esp_lwmqtt_network_disconnect(&esp_mqtt_network);
-  }
-#else
-  esp_lwmqtt_network_disconnect(&esp_mqtt_network);
-#endif
+  // disconnect network
+  esp_mqtt_network_disconnect();
 
   // set flags
   esp_mqtt_connected = false;
@@ -684,16 +693,8 @@ void esp_mqtt_stop() {
     esp_mqtt_connected = false;
   }
 
-// disconnect network
-#if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
-  if (esp_mqtt_use_tls) {
-    esp_tls_lwmqtt_network_disconnect(&esp_mqtt_tls_network);
-  } else {
-    esp_lwmqtt_network_disconnect(&esp_mqtt_network);
-  }
-#else
-  esp_lwmqtt_network_disconnect(&esp_mqtt_network);
-#endif
+  // disconnect network
+  esp_mqtt_network_disconnect();
 
   // kill mqtt task
   ESP_LOGI(ESP_MQTT_LOG_TAG, "esp_mqtt_stop: deleting task");
