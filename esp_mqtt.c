@@ -59,7 +59,7 @@ static esp_mqtt_message_callback_t esp_mqtt_message_callback = NULL;
 
 static lwmqtt_client_t esp_mqtt_client;
 
-static esp_lwmqtt_network_t esp_mqtt_network = {0};
+static esp_lwmqtt_network_t esp_mqtt_network = {.socket = -1};
 
 #if defined(CONFIG_ESP_MQTT_TLS_ENABLE)
 static bool esp_mqtt_use_tls = false;

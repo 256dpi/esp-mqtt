@@ -7,6 +7,13 @@
 
 #include "esp_lwmqtt.h"
 
+static void esp_lwmqtt_close_socket(esp_lwmqtt_network_t *n) {
+  if (n->socket >= 0) {
+    close(n->socket);
+    n->socket = -1;
+  }
+}
+
 void esp_lwmqtt_timer_set(void *ref, uint32_t timeout) {
   // cast timer reference
   esp_lwmqtt_timer_t *t = (esp_lwmqtt_timer_t *)ref;
@@ -47,7 +54,7 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *n, char *host, cha
   int flag = 1;
   r = setsockopt(n->socket, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(int));
   if (r < 0) {
-    close(n->socket);
+    esp_lwmqtt_close_socket(n);
     freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
@@ -55,7 +62,7 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *n, char *host, cha
   // set socket to non-blocking
   r = fcntl(n->socket, F_SETFL, fcntl(n->socket, F_GETFL, 0) | O_NONBLOCK);
   if (r < 0) {
-    close(n->socket);
+    esp_lwmqtt_close_socket(n);
     freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
@@ -63,7 +70,7 @@ lwmqtt_err_t esp_lwmqtt_network_connect(esp_lwmqtt_network_t *n, char *host, cha
   // connect socket
   r = connect(n->socket, res->ai_addr, res->ai_addrlen);
   if (r < 0 && errno != EINPROGRESS) {
-    close(n->socket);
+    esp_lwmqtt_close_socket(n);
     freeaddrinfo(res);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
@@ -87,7 +94,7 @@ lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *n, bool *connected, u
   struct timeval t = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
   int result = select(n->socket + 1, NULL, &set, &ex_set, &t);
   if (result < 0 || FD_ISSET(n->socket, &ex_set)) {
-    close(n->socket);
+    esp_lwmqtt_close_socket(n);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
@@ -97,7 +104,7 @@ lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *n, bool *connected, u
   // set socket to blocking
   int r = fcntl(n->socket, F_SETFL, fcntl(n->socket, F_GETFL, 0) & (~O_NONBLOCK));
   if (r < 0) {
-    close(n->socket);
+    esp_lwmqtt_close_socket(n);
     return LWMQTT_NETWORK_FAILED_CONNECT;
   }
 
@@ -105,11 +112,7 @@ lwmqtt_err_t esp_lwmqtt_network_wait(esp_lwmqtt_network_t *n, bool *connected, u
 }
 
 void esp_lwmqtt_network_disconnect(esp_lwmqtt_network_t *n) {
-  // close socket if present
-  if (n->socket) {
-    close(n->socket);
-    n->socket = 0;
-  }
+  esp_lwmqtt_close_socket(n);
 }
 
 lwmqtt_err_t esp_lwmqtt_network_select(esp_lwmqtt_network_t *n, bool *available, uint32_t timeout) {
