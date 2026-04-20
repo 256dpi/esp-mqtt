@@ -8,13 +8,11 @@ fmt:
 	clang-format -i ./test/main/*.c -style="{BasedOnStyle: Google, ColumnLimit: 120, SortIncludes: false}"
 
 prepare:
-	git clone --recursive  https://github.com/espressif/esp-idf.git test/esp-idf
-	cd test/esp-idf; git fetch; git checkout $(ESP_IDF_VERSION)
-	cd test/esp-idf/; git submodule update --recursive --init
-
-update:
-	cd test/esp-idf; git fetch; git checkout $(ESP_IDF_VERSION)
-	cd test/esp-idf/; git submodule update --recursive --init
+	rm -rf test/build test/esp-idf test/tools
+	curl -L -o test/esp-idf.zip https://github.com/espressif/esp-idf/releases/download/$(ESP_IDF_VERSION)/esp-idf-$(ESP_IDF_VERSION).zip
+	unzip -q test/esp-idf.zip -d test
+	mv test/esp-idf-$(ESP_IDF_VERSION) test/esp-idf
+	rm test/esp-idf.zip
 
 install:
 	export IDF_TOOLS_PATH=$(shell pwd)/test/tools; cd test/esp-idf; ./install.sh $(TARGET)
