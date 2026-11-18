@@ -5,22 +5,22 @@
 
 **MQTT component for esp-idf projects based on the [lwmqtt](https://github.com/256dpi/lwmqtt) library**
 
-This component bundles the lwmqtt client and adds a simple async API similar to other esp networking components. Secure connections are supported via the `mbedTLS` library.
+This component bundles the lwmqtt client and adds a simple async API similar to other esp networking components. Secure connections are supported via the `esp-tls` component.
 
 ## Installation
 
-You can install the component by adding it as a git submodule:
+You can install the component by adding it as a git submodule to the `components` directory of your project:
 
 ```bash
 git submodule add https://github.com/256dpi/esp-mqtt.git components/esp-mqtt
 git submodule update --init --recursive
 ```
 
-The component will automatically enable the LWIP receive buffers.
+The component will automatically enable the LWIP receive buffers (`CONFIG_LWIP_SO_RCVBUF`), which it requires.
 
 ### PlatformIO
 
-You need to set `CONFIG_LWIP_SO_RCVBUF=y` manually in `sdkconfig`.
+PlatformIO projects using `framework = espidf` are built with the ESP-IDF build system and also pick up components from the `components` directory, so the same installation applies. If the receive buffers are not enabled in your configuration, set `CONFIG_LWIP_SO_RCVBUF=y` manually in `sdkconfig`.
 
 ## Example
 
@@ -36,14 +36,18 @@ Initialize the component once by passing the necessary callbacks:
 
 ```c++
 void esp_mqtt_init(esp_mqtt_status_callback_t scb, esp_mqtt_message_callback_t mcb,
-                   size_t buffer_size, int command_timeout);
+                   size_t buffer_size, int command_timeout, int core);
 ```
+
+The background task is pinned to the specified `core` (use `tskNO_AFFINITY` to not pin it).
 
 Enable secure connection using TLS:
 
 ```c++
-bool esp_mqtt_tls(bool enabled, bool verify, const uint8_t * ca_buf, size_t ca_len);
+bool esp_mqtt_tls(bool enable, bool verify, const uint8_t *ca_buf, size_t ca_len);
 ```
+
+If no CA certificate is provided, the ESP certificate bundle is used (`CONFIG_ESP_MQTT_TLS_CERTS`).
 
 Optionally, configure a Last Will and Testament:
 
@@ -63,7 +67,7 @@ When the client has connected, interact with the broker:
 ```c++
 bool esp_mqtt_subscribe(const char *topic, int qos);
 bool esp_mqtt_unsubscribe(const char *topic);
-bool esp_mqtt_publish(const char *topic, uint8_t *payload, size_t len, int qos, bool retained);
+bool esp_mqtt_publish(const char *topic, const uint8_t *payload, size_t len, int qos, bool retained);
 ```
 
 If the WiFi connection has been lost, stop the process:
